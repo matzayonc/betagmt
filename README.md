@@ -46,7 +46,7 @@ npm run build          # static build in dist/ (needs VITE_RPC_URL)
 - **On-chain data:** max leverage, minimum collateral and fees come from each market's account. Positions, entry prices and PnL come from the position accounts.
 - **Opening a strategy:** it builds one order per leg, all signed in a single wallet prompt. The app then waits for the keeper to fill them. Legs that don't fill are reported.
 - **Strategy tracking:** strategies are tracked in `localStorage` per wallet, because on-chain positions are per market/side, not per strategy. When two strategies share a market leg, closing one removes only its share.
-- **Prices:** from GMTrade's keeper API (`keeper-prod-api.gmtrade.xyz`), the same prices orders execute at. It also reports whether each market is open, and the app blocks orders on closed markets (for example SPY outside US hours). If the API is down, crypto prices fall back to on-chain Pyth.
+- **Prices and market status:** prices come from GMTrade's cached tickers (`gmtrade-web-backend.gmtrade.xyz`), polled every 5 s and scaled by GMTrade's per-token decimals (`tickerDecimals` in `app/src/config.ts`). Whether each market is open comes from its keeper API, checked once a minute because it rate-limits browsers, and the app blocks orders on closed markets (for example SPY outside US hours). If GMTrade is down, crypto prices fall back to on-chain Pyth.
 - **RPC in dev:** RPC traffic goes through the Vite proxy (`/rpc`), because public RPCs reject browser origins.
 
 ### Deploying to GitHub Pages

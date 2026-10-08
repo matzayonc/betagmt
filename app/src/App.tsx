@@ -25,7 +25,7 @@ import {
   type MarketKey,
   type StrategyDef,
 } from "./config";
-import { loadPrices } from "./prices";
+import { loadMarketStatus, loadPrices } from "./prices";
 
 // --- helpers from the design ---
 const UP = "oklch(0.78 0.16 155)", DN = "oklch(0.7 0.18 25)", ACC = "oklch(0.82 0.14 165)";
@@ -165,7 +165,12 @@ export class App extends Component<object, State> {
   componentDidMount() {
     loadMarketParams().then((params) => this.setState({ params })).catch((e) => this.setState({ error: `Failed to load markets: ${e.message}` }));
     this.refreshPrices();
-    this.timers.push(setInterval(this.refreshPrices, 10_000), setInterval(this.refreshAccount, 10_000));
+    this.refreshMarketStatus();
+    this.timers.push(
+      setInterval(this.refreshPrices, 5_000),
+      setInterval(this.refreshMarketStatus, 60_000),
+      setInterval(this.refreshAccount, 10_000),
+    );
     // Reconnect silently if the wallet already trusts this site.
     getInjectedWallet()?.connect({ onlyIfTrusted: true }).then(({ publicKey }) => this.onConnected(publicKey)).catch(() => {});
   }
@@ -181,14 +186,19 @@ export class App extends Component<object, State> {
     this.toastTimer = setTimeout(() => this.setState({ toast: null }), ms);
   }
 
+  /** Rate-limited upstream; on failure the last known status is kept. */
+  refreshMarketStatus = async () => {
+    try {
+      const status = await loadMarketStatus();
+      this.setState((s) => ({ marketOpen: { ...s.marketOpen, ...status } }));
+    } catch (e) { console.warn("market status", e); }
+  };
+
   refreshPrices = async () => {
     try {
-      const { prices, isOpen } = await loadPrices();
+      const prices = await loadPrices();
       // Keep the last good value when a source temporarily has no price.
-      this.setState((s) => ({
-        prices: Object.fromEntries(MARKET_KEYS.map((k) => [k, prices[k] ?? s.prices[k] ?? null])),
-        marketOpen: { ...s.marketOpen, ...isOpen },
-      }));
+      this.setState((s) => ({ prices: Object.fromEntries(MARKET_KEYS.map((k) => [k, prices[k] ?? s.prices[k] ?? null])) }));
     } catch (e) { console.warn("prices", e); }
   };
 

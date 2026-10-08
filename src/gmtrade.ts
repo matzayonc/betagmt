@@ -70,6 +70,37 @@ function decodeMarketName(data: Uint8Array): string {
   return new TextDecoder().decode(end === -1 ? raw : raw.subarray(0, end));
 }
 
+// Offsets of `MarketConfig` fields inside the `Market` account (gmsol-store IDL, SDK 0.9/0.10).
+const MIN_COLLATERAL_VALUE_OFFSET = 376;
+const MIN_COLLATERAL_FACTOR_OFFSET = 392;
+const ORDER_FEE_FACTOR_NEGATIVE_IMPACT_OFFSET = 568;
+
+export interface MarketParams {
+  /** Minimum collateral value in USD, checked after fees. */
+  minCollateralUsd: number;
+  /** 1 / min collateral factor. */
+  maxLeverage: number;
+  /** Order fee as a fraction of size (the higher, negative-impact rate). */
+  orderFeeFactor: number;
+}
+
+function readU128(data: Uint8Array, offset: number): bigint {
+  const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+  return view.getBigUint64(offset, true) + (view.getBigUint64(offset + 8, true) << 64n);
+}
+
+const toUnitNumber = (v: bigint) => Number(v) / Number(USD_UNIT);
+
+/** Decode trading limits and fees from raw `Market` account data. */
+export function decodeMarketParams(data: Uint8Array): MarketParams {
+  const minCollateralFactor = toUnitNumber(readU128(data, MIN_COLLATERAL_FACTOR_OFFSET));
+  return {
+    minCollateralUsd: toUnitNumber(readU128(data, MIN_COLLATERAL_VALUE_OFFSET)),
+    maxLeverage: minCollateralFactor > 0 ? 1 / minCollateralFactor : Infinity,
+    orderFeeFactor: toUnitNumber(readU128(data, ORDER_FEE_FACTOR_NEGATIVE_IMPACT_OFFSET)),
+  };
+}
+
 function toMarketInfo(address: PublicKey, data: Uint8Array): MarketInfo {
   const market = Market.decode(data);
   try {
@@ -182,6 +213,57 @@ export async function fetchPosition(
   }
 }
 
+/**
+ * Fetch several positions in two RPC calls. Returns one entry per request, `null` if
+ * the position doesn't exist or is empty.
+ */
+export async function fetchPositions(
+  connection: Connection,
+  owner: PublicKey,
+  requests: { market: MarketInfo; collateralToken: PublicKey; isLong: boolean }[],
+): Promise<(PositionInfo | null)[]> {
+  if (requests.length === 0) return [];
+  const markets = [...new Map(requests.map((r) => [r.market.address.toBase58(), r.market])).values()];
+  const addresses = requests.map((r) => findPositionAddress({ owner, ...r, marketToken: r.market.marketToken }));
+  const [accounts, mints] = await Promise.all([
+    connection.getMultipleAccountsInfo([...addresses, ...markets.map((m) => m.address)]),
+    connection.getMultipleParsedAccounts(markets.map((m) => m.marketToken)),
+  ]);
+  const marketData = new Map(markets.map((m, i) => [m.address.toBase58(), accounts[addresses.length + i]]));
+  const supply = new Map(
+    markets.map((m, i) => {
+      const data = mints.value[i]?.data;
+      return [m.address.toBase58(), data && "parsed" in data ? BigInt(data.parsed.info.supply) : 0n];
+    }),
+  );
+
+  return requests.map((r, i) => {
+    const positionAccount = accounts[i];
+    const marketAccount = marketData.get(r.market.address.toBase58());
+    if (!positionAccount || !marketAccount) return null;
+    const marketModel = Market.decode(marketAccount.data).to_model(supply.get(r.market.address.toBase58())!);
+    const model = Position.decode(positionAccount.data).to_model(marketModel);
+    try {
+      const info: PositionInfo = {
+        address: addresses[i],
+        sizeUsd: model.size(),
+        sizeInTokens: model.size_in_tokens(),
+        collateralAmount: model.collateral_amount(),
+      };
+      return info.sizeUsd > 0n ? info : null;
+    } finally {
+      model.free();
+      marketModel.free();
+    }
+  });
+}
+
+/** Average entry price of a position, given the index token's decimals. */
+export function positionEntryPrice(position: PositionInfo, indexDecimals: number): number {
+  if (position.sizeInTokens === 0n) return 0;
+  return toUnitNumber(position.sizeUsd) / (Number(position.sizeInTokens) / 10 ** indexDecimals);
+}
+
 interface BuildOrderArgs {
   owner: PublicKey;
   market: MarketInfo;
@@ -252,16 +334,39 @@ export function buildOpenPositionTxs(
   );
 }
 
-/** Build txs for a market-decrease order that fully closes `position`. */
-export function buildClosePositionTxs(
-  args: BuildOrderArgs & { position: PositionInfo; acceptablePrice?: bigint },
+/** Build txs for a market-decrease order. */
+export function buildDecreasePositionTxs(
+  args: BuildOrderArgs & {
+    /** Size to remove, in USD (20 decimals). */
+    sizeUsd: bigint;
+    /** Collateral to withdraw, in collateral-token base units. */
+    collateralAmount: bigint;
+    acceptablePrice?: bigint;
+  },
 ): SerializedTransactionGroup {
   return buildOrder(
     "MarketDecrease",
     args,
-    { size: args.position.sizeUsd, amount: args.position.collateralAmount, acceptablePrice: args.acceptablePrice },
+    { size: args.sizeUsd, amount: args.collateralAmount, acceptablePrice: args.acceptablePrice },
     { receive_token: args.collateralToken.toBase58() },
   );
+}
+
+/** Build txs for a market-decrease order that fully closes `position`. */
+export function buildClosePositionTxs(
+  args: BuildOrderArgs & { position: PositionInfo; acceptablePrice?: bigint },
+): SerializedTransactionGroup {
+  return buildDecreasePositionTxs({
+    ...args,
+    sizeUsd: args.position.sizeUsd,
+    collateralAmount: args.position.collateralAmount,
+  });
+}
+
+/** Merge groups step by step, so several orders go out together (and are signed in one prompt). */
+export function mergeTransactionGroups(groups: SerializedTransactionGroup[]): SerializedTransactionGroup {
+  const steps = Math.max(0, ...groups.map((g) => g.length));
+  return Array.from({ length: steps }, (_, i) => groups.flatMap((g) => g[i] ?? []));
 }
 
 /**
@@ -273,10 +378,13 @@ export async function sendTransactionGroup(
   signer: WalletSigner,
   group: SerializedTransactionGroup,
 ): Promise<string[]> {
+  // Sign every step at once so the wallet prompts only once.
+  const txs = group.flat().map((bytes) => VersionedTransaction.deserialize(Uint8Array.from(bytes)));
+  const signedAll = await signer.signAllTransactions(txs);
   const signatures: string[] = [];
+  let offset = 0;
   for (const step of group) {
-    const txs = step.map((bytes) => VersionedTransaction.deserialize(Uint8Array.from(bytes)));
-    const signed = await signer.signAllTransactions(txs);
+    const signed = signedAll.slice(offset, (offset += step.length));
     const latest = await connection.getLatestBlockhash();
     const sigs = await Promise.all(
       signed.map((tx) => connection.sendRawTransaction(tx.serialize(), { maxRetries: 5 })),

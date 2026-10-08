@@ -4,16 +4,28 @@
   "type": "module",
   "scripts": {
     "open-close": "NODE_OPTIONS=--experimental-wasm-modules tsx scripts/open-close.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "sync-markets": "NODE_OPTIONS=--experimental-wasm-modules tsx scripts/sync-markets.ts",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@gmsol-labs/gmsol-sdk": "0.9.0",
     "@solana/web3.js": "^1.98.0",
-    "bs58": "^6.0.0"
+    "bs58": "^6.0.0",
+    "buffer": "^6.0.3",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^4.7.0",
     "tsx": "^4.19.0",
-    "typescript": "^5.8.0"
+    "typescript": "^5.8.0",
+    "vite": "^6.4.4",
+    "vite-plugin-wasm": "^3.6.0"
   }
 }

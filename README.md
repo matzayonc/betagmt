@@ -33,6 +33,29 @@ The wallet needs USDC (collateral) plus about 0.05 SOL for tx fees, the keeper e
 3. A GMTrade keeper executes the order a few seconds later. The script polls the position PDA until it has a size.
 4. `create_orders("MarketDecrease", …)` uses the full size and collateral, then the script polls until the position is gone.
 
+## Web app (Strategies)
+
+`app/` is the `Strategies.dc.html` design, ported to Vite + React and wired to GMTrade mainnet. You connect with Phantom.
+
+```bash
+npm run dev            # http://localhost:5173
+npm run sync-markets   # refresh app/src/markets.json (market addresses)
+npm run build          # static build in dist/ (needs VITE_RPC_URL)
+```
+
+- **On-chain data:** max leverage, minimum collateral and fees come from each market's account. Positions, entry prices and PnL come from the position accounts.
+- **Opening a strategy:** it builds one order per leg, all signed in a single wallet prompt. The app then waits for the keeper to fill them. Legs that don't fill are reported.
+- **Strategy tracking:** strategies are tracked in `localStorage` per wallet, because on-chain positions are per market/side, not per strategy. When two strategies share a market leg, closing one removes only its share.
+- **Prices:** from GMTrade's keeper API (`keeper-prod-api.gmtrade.xyz`), the same prices orders execute at. It also reports whether each market is open, and the app blocks orders on closed markets (for example SPY outside US hours). If the API is down, crypto prices fall back to on-chain Pyth.
+- **RPC in dev:** RPC traffic goes through the Vite proxy (`/rpc`), because public RPCs reject browser origins.
+
+### Deploying to GitHub Pages
+
+`.github/workflows/pages.yml` builds and deploys the app on every push to `main`. One-time setup:
+
+1. **Settings → Pages:** set *Source* to **GitHub Actions**.
+2. **Settings → Secrets and variables → Actions → Variables:** add `VITE_RPC_URL` with an RPC endpoint that accepts browser requests (Helius, QuickNode, Triton, …). The URL ends up in the public bundle, so restrict the key to your Pages domain in the provider's dashboard.
+
 ## Using it in a website
 
 ```ts

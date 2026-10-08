@@ -1,0 +1,929 @@
+[
+  {
+    "name": "AAPL/USD[USDC-USDC]",
+    "address": "3Yto6MTrGFaTHcfJWGhP3JHmBPoE435D69Y93F7gHAdq",
+    "marketToken": "GRT3cFnBkNNTs89wC9Q9qjU9JmZ6XTgu7fF4KRHgW5iR",
+    "indexToken": "AapaFKgsAsCMqSvXBPXqipX5WWxArgnPbADSNfhU9E9J",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "AAVE/USD[WSOL-USDC]",
+    "address": "ARD41bjAWARhJ4wbByGDhdnkGfCr5NzGAsnAjNU5WbaE",
+    "marketToken": "2dVHXNgzC7vvcsDi89S6crSkX3Y6HzPgZfmWqttEzvmo",
+    "indexToken": "AaveaPPwFJx88apsgcpzck7xkohpiZPViKkNndRZJ6pv",
+    "longToken": "So11111111111111111111111111111111111111112",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "ADA/USD[USDC-USDC]",
+    "address": "5ZQdBuBE3PvbWa9VY8Ppvdu2pXGPnszUHcBeALJWG7Em",
+    "marketToken": "4x3BBE2tx8fFG2V6BjHEWevo3j3jraYWTAHVfKTt31w2",
+    "indexToken": "AdamfezT5MsUMv5PtSBDWHwPCpcYVyq2CWAseqNbwU7Q",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "AMZN/USD[USDC-USDC]",
+    "address": "FeE21oStcXpTGm4PHZnqB98FU1g9cA88KiG5TbeKGVPt",
+    "marketToken": "DWZHgZPGvvCTSAo1GrrEFsCwtRcxrU4BnTQokMMMN9Qe",
+    "indexToken": "AmzF1ANXKgmWzm8TLmjAUaZTeqT4gZGV9Xi81yLx1FF9",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "APE/USD[APE-USDC]",
+    "address": "62qjjocX1wzKSYBPHfjAKErEWdCcGH2W3sg4Z2vjwjad",
+    "marketToken": "3oy9VYvMUh9iPRA4adCdGHJLPg2QUAqxupQZoaFR7vwV",
+    "indexToken": "C1MHyoTJpRTeS9AQCyspNVu2EWAYCZwmJ1jNkEArFP1f",
+    "longToken": "C1MHyoTJpRTeS9AQCyspNVu2EWAYCZwmJ1jNkEArFP1f",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 9
+  },
+  {
+    "name": "ARB/USD[WGMX-USDC]",
+    "address": "7JeGFwPjvxUcC3roYcMxcJVTQ3VqwPQoWEDaKCnzD1Fr",
+    "marketToken": "5PRmYd1WbEb1onzHAqaxevt6vAU2fCRSBeJBqSsMmkEh",
+    "indexToken": "arb61K9FqhdBzLQdwi4aae6MLn94RzbcMs8varqwUt5",
+    "longToken": "9wX6Qz1Y5YQe71dfnFYFfZYXZhKqjYKQwdqfrRkmYUSX",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "ASTER/USD[USDC-USDC]",
+    "address": "9BkuqApW6joRxmmC8WABvQY6iC4AVqMSmsFvAFaZWpZk",
+    "marketToken": "EVDVoXejNDFumTNos8C84nWRTUXPYJqCAdWfei7TwxZC",
+    "indexToken": "Ast9jCRDBog1oWQUJbhXbGhiPcjPTgsbPKf3qGK8vixc",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "ASTER/USD[USDT-USDT]",
+    "address": "CE2pPicEU6Aq5pG1HQZLDrHTxDWTcAVUadtiVeZ726R7",
+    "marketToken": "EgmB7CeymWucnEmVjpqKoXqTuZfMuxzPf89ZziU2gmPE",
+    "indexToken": "Ast9jCRDBog1oWQUJbhXbGhiPcjPTgsbPKf3qGK8vixc",
+    "longToken": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+    "shortToken": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+    "indexDecimals": 8
+  },
+  {
+    "name": "AUD/USD[USDC-USDC]",
+    "address": "BZFQaPvXNL7ksHhCgEn8eRZpefiDCy61wyGVJeP1mD2",
+    "marketToken": "C54H1AwSVGfFUFSwemcnzXTf6ZnWvDrHMnuqVMRXTH97",
+    "indexToken": "Audg5JLrnh6tRy6WWPRnZ1kh9xiWr2omtP5xdQRTvqQh",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "AVAX/USD[USDC-USDC]",
+    "address": "7F8y61cwBWxgdVHZ17qx4KSfPsdhXLvgMQAfQY6xv9ty",
+    "marketToken": "2wxH1sGLH4Rui6Ws4F1nFDHtW3aJDG1fAF3gZVJ7ktwV",
+    "indexToken": "KgV1GvrHQmRBY8sHQQeUKwTm2r2h8t4C8qt12Cw1HVE",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "BCH/USD[USDC-USDC]",
+    "address": "FsqcrXLBgnm5YoNw2ED63HvigdM4EDgZN7m8MSqpMSAm",
+    "marketToken": "7X3EpLG2yW7SzPzz9NYarouQGMsPkYxZJBGEhVkkdXWW",
+    "indexToken": "BchGdYptcKvUDCpHMDAB5h1MfXq2LPzRLcU8b4r8dQiQ",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "BCH/USD[WSOL-USDC]",
+    "address": "BCJjoTj6J7DWMtwvSiY5BFjwazP5XHwp8vXgJrgNvmn6",
+    "marketToken": "sWvE7CfFpES3WCbgeM45ZvAXRm34c9ssdf8PEApTqaX",
+    "indexToken": "BchGdYptcKvUDCpHMDAB5h1MfXq2LPzRLcU8b4r8dQiQ",
+    "longToken": "So11111111111111111111111111111111111111112",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "BNB/USD[USDC-USDC]",
+    "address": "HVW7iLnty5Lchsihxi1Y9FvMUB8VJc2fKi8WtYFoZZSb",
+    "marketToken": "5bi8Ve65rhCjwP2ssmhwTQ7dtfRk5BSo6jYwtrJxkDQH",
+    "indexToken": "BnbuyeSZgnWxXppzkRgiA5TR4t3L9NBRnk6Hbr9m5GsJ",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "BNB/USD[WSOL-USDC]",
+    "address": "624vZMJYn5xKm4NoD6j7s7SM7DeekGfBn8yf5fz7gtkN",
+    "marketToken": "J42dzcHkgmzU7MARv7k29TrkKaGQ1j2mTaYjkBkN7pn5",
+    "indexToken": "BnbuyeSZgnWxXppzkRgiA5TR4t3L9NBRnk6Hbr9m5GsJ",
+    "longToken": "So11111111111111111111111111111111111111112",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "BOME/USD[BOME-USDC]",
+    "address": "3L4NPYHBdxeErQM3ruKR4Qgs37LvNot3cTg8rgxL6zag",
+    "marketToken": "9WTdN24Fm2AjKdMeWZLJwVs8B9dE3NhoajXu9EtWdWC4",
+    "indexToken": "ukHH6c7mMyiWCf1b9pnWe25TSpkDDt3H5pQZgZ74J82",
+    "longToken": "ukHH6c7mMyiWCf1b9pnWe25TSpkDDt3H5pQZgZ74J82",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 6
+  },
+  {
+    "name": "BOME/USD[USDC-USDC]",
+    "address": "7vZkGHZ6w6RsbgqcwwUsNZR8wrYzMJ4XLvoTxP4SvMs2",
+    "marketToken": "5tNb3BpKoU3UsRs2NTmeHeYynyFhQ1bpiaoD5iCrLWSD",
+    "indexToken": "ukHH6c7mMyiWCf1b9pnWe25TSpkDDt3H5pQZgZ74J82",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 6
+  },
+  {
+    "name": "BOME/USD[WSOL-USDC]",
+    "address": "3hYR4jdvAu1h5u8YsKAp5Hen7xNim8DCVTYpX9i5bjSU",
+    "marketToken": "5q5x6DT4viJhTEtiFGkTRyDT9KDmYoGfZF3rERwjV8aV",
+    "indexToken": "ukHH6c7mMyiWCf1b9pnWe25TSpkDDt3H5pQZgZ74J82",
+    "longToken": "So11111111111111111111111111111111111111112",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 6
+  },
+  {
+    "name": "BONK/USD[BONK-USDC]",
+    "address": "AAe7p1bYLBYX27cY9G7FBPZpLYpFzSMb9V8F3KUe49WD",
+    "marketToken": "ZoNHKGC8DUEskqG3T1ut3uL3KYWwb7kZnFmEn8Crqqu",
+    "indexToken": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+    "longToken": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 5
+  },
+  {
+    "name": "BONK/USD[USDC-USDC]",
+    "address": "EG5MWGBZWNXnc66FoYmSU87Zgr5SdfpdxgEJczGBcBNB",
+    "marketToken": "996QqBhGoKfNike6G7aURTEoD7SX6CrJQw6DMnq354Nw",
+    "indexToken": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 5
+  },
+  {
+    "name": "BONK/USD[WSOL-USDC]",
+    "address": "FaD1cQARrE9DQYCsr2WbYqgmyu7yargPaD3qMSotY94A",
+    "marketToken": "BvC73rarCMrhEnk3JmqaLntpnrwfUCR5eTrf7HQu6ieg",
+    "indexToken": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+    "longToken": "So11111111111111111111111111111111111111112",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 5
+  },
+  {
+    "name": "BTC/USD[USDC-USDC]",
+    "address": "4tM9cPqNpEYmstNdJMCc6rwdq42939w1SRFYoqMsqPQF",
+    "marketToken": "Dqq58gS1TgRMDouUbdvhhzc51XXTNHG921WLxH9X2eB8",
+    "indexToken": "BtcTQYRj7HRRk7MwnWiTFj8rWqN2ALt2QYig4cSWqTbv",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "BTC/USD[WBTC-USDC]",
+    "address": "8xZ95KnnLdy2aZ6zgEbKVg2yJkyqiNhsUbY8G6vFJbxW",
+    "marketToken": "7RNev94wKusSmFEqo3gvv1d1zMweP6sa2LtjJjroAvym",
+    "indexToken": "BtcTQYRj7HRRk7MwnWiTFj8rWqN2ALt2QYig4cSWqTbv",
+    "longToken": "3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "BTC/USD[WBTC-WBTC]",
+    "address": "GRNDhdHJxZjJCLxP5PXMg4bLsEuLYx8zczTJdztiF2qK",
+    "marketToken": "9JMZj2F9EEMLoJTpftpxSHeixoPZXXkbJ9qLH5vhPXWT",
+    "indexToken": "BtcTQYRj7HRRk7MwnWiTFj8rWqN2ALt2QYig4cSWqTbv",
+    "longToken": "3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh",
+    "shortToken": "3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh",
+    "indexDecimals": 8
+  },
+  {
+    "name": "BTC/USD[WSOL-USDC]",
+    "address": "4HjHKS8VvzrdahqLjxa4RSDe762jiPnEV69qBdafTDTQ",
+    "marketToken": "EE889Nsvqkk3A82GXhxbCbpNkM6Fkqdgp8UNv5sZ2qU",
+    "indexToken": "BtcTQYRj7HRRk7MwnWiTFj8rWqN2ALt2QYig4cSWqTbv",
+    "longToken": "So11111111111111111111111111111111111111112",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "BZ/USD[USDC-USDC]",
+    "address": "2NS32BhSzEJq6CjTy13NkNc5jfpQUcR1jScUAG8KvoYX",
+    "marketToken": "4HyjCC5z16bLadT2NhM9bzqFJb6NuRDmGdcDtEJZUctj",
+    "indexToken": "BzdSwajpPDpWrHzFJajvyzVpeJdnPsr2cmyowUh4P7VN",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "DOGE/USD[USDC-USDC]",
+    "address": "7Ch1naWW5pAWEVWBbub3uNksx7AJJ9kLQujGLVCRrSxj",
+    "marketToken": "D8VqUfw81UPnreceozYSHbmwdGizk9C4ekV6fXZqr6YJ",
+    "indexToken": "DogeJP1vR955QsXWKT1vw5gJsyiTthqPEtJZj8enDWxF",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "DOGE/USD[WSOL-USDC]",
+    "address": "EWWX487VXPUx5S9qTCtmsujrYvChWMCNCL9EQu7mTBwP",
+    "marketToken": "BjEpsvvjca1cQ6KGaeULn6sp8hPsP7XhRvUhepPX181c",
+    "indexToken": "DogeJP1vR955QsXWKT1vw5gJsyiTthqPEtJZj8enDWxF",
+    "longToken": "So11111111111111111111111111111111111111112",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "DOT/USD[USDC-USDC]",
+    "address": "8o19UAtdSzNVfLZ3Htg6AYGRM7BCSmgzASxDSG5uJFvQ",
+    "marketToken": "2Ek8kU98XKeH4ErvQcEGoEf2Q2xqBMEK6bfjanypVeZP",
+    "indexToken": "DotB5VDVP2VbfETfRsEsWnPH42tBiQZxHjGNH4iaNGSR",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "ENA/USD[USDC-USDC]",
+    "address": "DjzwRRkVR3nz39fijfAGKEEKpCZLAJFx79sZRUHUnW4s",
+    "marketToken": "BgiWpn6fEU3duXEyZN49kHwjxMdazkJi1aZrUQGQkWJn",
+    "indexToken": "EnaRUVoWPozu58p8FerezM3fP8erLU5pFeXmjikq9qmR",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "ETH/USD[USDC-USDC]",
+    "address": "6EnZdBzJsGznoh857PuhbrnrzWYGtZe6xMZiQjAPyFGT",
+    "marketToken": "DAY6Qr1FKgJQFvjJAhFUZUWHzx8UbbbkRmt6G6AYswWG",
+    "indexToken": "EthK4kKnQQUd1Ae1w7sdiMAUaJwq2RMwr7AtscXEdEsF",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "ETH/USD[WETH-USDC]",
+    "address": "Bk5HBUiAEyYmoV8u3sonuYcXe4MWp1aVLERBjJVbv9KJ",
+    "marketToken": "5KSsaGZebQSAxZcYuzRz5JWCxoYztWYcfTcRBWLCwoMX",
+    "indexToken": "EthK4kKnQQUd1Ae1w7sdiMAUaJwq2RMwr7AtscXEdEsF",
+    "longToken": "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "ETH/USD[WETH-WETH]",
+    "address": "H3VmDNRNp8kJ2yKmnuC7eKVDBWZ9H63rL2NMPPnmKMQv",
+    "marketToken": "AC7iz89CBopxsuzoPU5drW59PB9rZJYpvqaedGxAjFeK",
+    "indexToken": "EthK4kKnQQUd1Ae1w7sdiMAUaJwq2RMwr7AtscXEdEsF",
+    "longToken": "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs",
+    "shortToken": "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs",
+    "indexDecimals": 8
+  },
+  {
+    "name": "ETH/USD[WSOL-USDC]",
+    "address": "Qux1dYoXRHnYKpDLL2ZbJehFvWcMUnBmiStiRLdmHdJ",
+    "marketToken": "73mxoziw5uKnrXSAKA693b225r5aru1Sdkn9msXznh4R",
+    "indexToken": "EthK4kKnQQUd1Ae1w7sdiMAUaJwq2RMwr7AtscXEdEsF",
+    "longToken": "So11111111111111111111111111111111111111112",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "EUR/USD[USDC-USDC]",
+    "address": "HGEj3sGX2f7AAWUKE3AKtJuG7SZYi3N8argbFc4fk37V",
+    "marketToken": "DLX3Aa17ebmyRp6Paxe16wn3QYtNVqdNH9AM9ZKLScfy",
+    "indexToken": "EurdPiuWJazzqJLKE4Amb1ZQxVkpwEiSKCZfNgXC9Wi4",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 9
+  },
+  {
+    "name": "FARTCOIN/USD[FARTCOIN-USDC]",
+    "address": "7k1TvY9xG9nQi7R5RZhZUB43XGu4NA4TA6kzu7LUiomv",
+    "marketToken": "8qKq3aLMRbck7Q5TiWnkDnTAUc7QZNEHQv2dTagZAT7x",
+    "indexToken": "9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump",
+    "longToken": "9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 6
+  },
+  {
+    "name": "FARTCOIN/USD[USDC-USDC]",
+    "address": "BSqzP5vGxjoinyDouJvktyS5DuKxnJuFQ6rrtEVyAVmQ",
+    "marketToken": "3t88GTQgD1Dyi4qX1BeW1zpJ1d4g8wXieFeX5VXpCTNo",
+    "indexToken": "9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 6
+  },
+  {
+    "name": "FARTCOIN/USD[WSOL-USDC]",
+    "address": "7HPU75j2rNV5RPRQPVN6mQ7sfgWgszBzmVYmAohf7PKN",
+    "marketToken": "GErzt3fxfuQScQYtaKGGbgNtdk3LWDmKZ1YVZX2L4Tjc",
+    "indexToken": "9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump",
+    "longToken": "So11111111111111111111111111111111111111112",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 6
+  },
+  {
+    "name": "GBP/USD[USDC-USDC]",
+    "address": "D6JRVt3h7xAUTGCtL2MeGkx2AmNGuaK6PWLu5LVdx3t",
+    "marketToken": "FNCNNdBKjM2noAsEZsYbTRX2kXT1T4ig1CV2bjXTimAY",
+    "indexToken": "GbpeVg2NBeL9Q2RDLrYkkkRXNMjaXg4vBZbh2cffH7aG",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 9
+  },
+  {
+    "name": "GMX/USD[WGMX-USDC]",
+    "address": "DzAG1uyq6kFNBZKtGUVCHp5kiJ459cMMQkz6ktrPq1wh",
+    "marketToken": "CH7pboF6PnCTAuWZbhC1eLKsX6rjd2UAPG87oqsizxR2",
+    "indexToken": "GmxDsqjKYUrwgbvccGrpF1LoyHPUq8FQqT1FJfkvrMfY",
+    "longToken": "9wX6Qz1Y5YQe71dfnFYFfZYXZhKqjYKQwdqfrRkmYUSX",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 9
+  },
+  {
+    "name": "GMX/USD[WSOL-USDC]",
+    "address": "47cF5oAPycHuH9Q8TbuHSgiaHjypWQN1T8HKkYX7yEw1",
+    "marketToken": "E6kfBQcdHL3fdWNaydrWViXVtQLTgpxzZicLy98ZNc5v",
+    "indexToken": "GmxDsqjKYUrwgbvccGrpF1LoyHPUq8FQqT1FJfkvrMfY",
+    "longToken": "So11111111111111111111111111111111111111112",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 9
+  },
+  {
+    "name": "GOOGL/USD[USDC-USDC]",
+    "address": "Hp5e5aKJFXXmqfv7dgG7AKbKuVt7QoaXaehDrvQDEf34",
+    "marketToken": "9vyRjXeJGKgikeQiqbVyL49tXwcMKFNnt5ig3TmsjyKT",
+    "indexToken": "GooBXeDfVwNPMCvHvGvUtEVxt1GwGzXxL8kqv8YKsAAy",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "HYPE/USD[USDC-USDC]",
+    "address": "3yRWF78uhCYigPVTXAfq3myZ6juSe9gJY6FvgnLCxzQP",
+    "marketToken": "4GmYJA45W11rQYsWcq3CHvASY199wTQz2LFj8tQBqqWC",
+    "indexToken": "HypeVcgZWXS1fSuij5R5Kp9JcYjw34ZG6yic1bde9vS5",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 9
+  },
+  {
+    "name": "LINK/USD[USDC-USDC]",
+    "address": "7CT48qVPqzFEGvAxFHgvTrtK8pkVpCSj9Zm9qFP1ns85",
+    "marketToken": "EFdTdjGE6hze8RD4XjwmQJRd8CD9Soq3rbPm53dPcMsx",
+    "indexToken": "2wpTofQ8SkACrkZWrZDjXPitYa8AwWgX8AfxdeBRRVLX",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "LINK/USD[WSOL-USDC]",
+    "address": "CS94TqoJ3E99uUS15SBNJdyNAEQDF3ZKMtjNDSwRSkR",
+    "marketToken": "3pHXv5NsrxwkDdus2e1rTHoaNK9zUUnGwcwg1oeeCGzd",
+    "indexToken": "2wpTofQ8SkACrkZWrZDjXPitYa8AwWgX8AfxdeBRRVLX",
+    "longToken": "So11111111111111111111111111111111111111112",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "LIT/USD[WGMX-USDC]",
+    "address": "8tVgfajQ7MYdBZE7qkV1FJHvuS2rZnze5zH2W5xjbwJQ",
+    "marketToken": "5MpBQqsNFhuSJL27NAJ8W25TQ8yZVr6PZezjrU74LbMq",
+    "indexToken": "LitYCK3XFM7imaCwzutins43WCKfH8iubaEhp9JFPcj",
+    "longToken": "9wX6Qz1Y5YQe71dfnFYFfZYXZhKqjYKQwdqfrRkmYUSX",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "LTC/USD[USDC-USDC]",
+    "address": "7AmJ6PxmFDNiCszxnXCxUnQQUTj87AyW8UGxKg2N4ELb",
+    "marketToken": "5Sv9AETZBdR8JGpe3YMZJKzhvQmnLsAgcrfViJ8y8LB7",
+    "indexToken": "LtcsFqdfsLyoHZ7cRt9BkijqbFRAN1M4fB8naGaykTF",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "LTC/USD[WSOL-USDC]",
+    "address": "C199y3g9awLbt3r8dQyZ8jnyghSqJTuDYs6pNzz6Ctnz",
+    "marketToken": "527jUvh7guN8Fip96TeJhKWreeWdcwD9CFFwXG9mTiHQ",
+    "indexToken": "LtcsFqdfsLyoHZ7cRt9BkijqbFRAN1M4fB8naGaykTF",
+    "longToken": "So11111111111111111111111111111111111111112",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "MELANIA/USD[MELANIA-USDC]",
+    "address": "9d7U6CmCooUvgiNW9HjiTdx7yqnjCTErDuN543ei64Rd",
+    "marketToken": "CMjQbzbL6vo7JUkVkCTUhUmuf1ML2sNooJQxJTpweMwc",
+    "indexToken": "FUAfBo2jgks6gB4Z4LfZkqSZgzNucisEHqnNebaRxM1P",
+    "longToken": "FUAfBo2jgks6gB4Z4LfZkqSZgzNucisEHqnNebaRxM1P",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 6
+  },
+  {
+    "name": "MELANIA/USD[USDC-USDC]",
+    "address": "5quoH2qkcfxcpSdovQNBaidxAE5LgV2GBZw9Skov4FfE",
+    "marketToken": "HViSi2W1rwNYc5YtPynHADGLtitrmekpQGoGU561Zpoz",
+    "indexToken": "FUAfBo2jgks6gB4Z4LfZkqSZgzNucisEHqnNebaRxM1P",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 6
+  },
+  {
+    "name": "MELANIA/USD[WSOL-USDC]",
+    "address": "44TW3MmdaRt1w67PLZps8Z7hkc5zVWUDJFqJbU5dKshg",
+    "marketToken": "CVYjDJknQnKUNFnuGrj75Lv6Pcm4AAencuYSZkQHQDtL",
+    "indexToken": "FUAfBo2jgks6gB4Z4LfZkqSZgzNucisEHqnNebaRxM1P",
+    "longToken": "So11111111111111111111111111111111111111112",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 6
+  },
+  {
+    "name": "META/USD[USDC-USDC]",
+    "address": "FDvH5hStzgvjJ6bqT85U5eF5TSNvkEaS8BZSNV9oPTdU",
+    "marketToken": "J3wiTkP3rfU23zJQX6sUU2z4iGAopC2kBxgGJMmMoY5M",
+    "indexToken": "Metn9UEcTz2oUDL2rBmxrvTvhL2TfYBqvfYnjf1xptt",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "MSFT/USD[USDC-USDC]",
+    "address": "83eadACtpUS42LYsCXMinBxoKXbyGrb9cS6qy6A4qn4v",
+    "marketToken": "DCfNNYgxCxGUxg9ycQ8T5qHXmPDRt7qA81UGkLha4KWx",
+    "indexToken": "Msftix9DNgRjxF7SXjjqfxjusmaXByNnDc6cdX3Z2qu",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "MSTR/USD[USDC-USDC]",
+    "address": "6Qx5Z9aVftwTT4CvEkhBtT8bCx9Joax8EsSVt36NTfep",
+    "marketToken": "6LDgChGwztBmUAqqusSv4VnWeAzUrZvewTDvyAaMynD7",
+    "indexToken": "Mst8Wf1EzeQi9pmtuhRoJ85DG7EPzBoa38bayRvNZXb",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "NATGAS/USD[USDC-USDC]",
+    "address": "DuA2Rnh6gzZbrtQYiMKD3htm6sJd4ASecwjnAYGKNZg4",
+    "marketToken": "HEdK5EakbdE2WppEKwoDT3y7jsEQnudGj8XUKLuDFgL1",
+    "indexToken": "NatUnX3bFG3XrT7P4HrJG2xhmCaz3uurT9fSkwGJ51P",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 9
+  },
+  {
+    "name": "NEAR/USD[WGMX-USDC]",
+    "address": "5KVS3XFHHWw9NmiE5yHwuSk4kL4pbEbgce5vMqztbZEy",
+    "marketToken": "7p6syvfgMsUmCDjsX9wyBtXUk1zZoMH4WYquS83r1Scm",
+    "indexToken": "Nearqg83ZH4Wbj2DDeN1EE86CUZaPFX2n8vErWNCPov",
+    "longToken": "9wX6Qz1Y5YQe71dfnFYFfZYXZhKqjYKQwdqfrRkmYUSX",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 9
+  },
+  {
+    "name": "NVDA/USD[USDC-USDC]",
+    "address": "8FHYNS58cXSM1xYDGDq88jHzHoKmbqEDaVnXywqXdAkT",
+    "marketToken": "Gi1dxHsgnVLg1JQYqKDWsTfXD9U9GvhPJDg7Has266FL",
+    "indexToken": "NvdwZ2PeA9HaCnRu59ZmRXGQJfyaRVTVZuxZ79voGWP",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "NZD/USD[USDC-USDC]",
+    "address": "B8ZGaYkcWVXzTeLMWZr9uM7JNt44Q6RqXbRobeJwyLYU",
+    "marketToken": "EatSc7mNnGBa1VoSq867bZntWJFYFmj51u9X3tCLRLRb",
+    "indexToken": "NzdGr62wT4t1xoHdYoVMEdWPb1yg9WQp2rQa34sscgJ",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "ONDO/USD[WGMX-USDC]",
+    "address": "GU9Wx1n9CEF6kuiaTMTz6it2qmSQduAxjo7JeA6RMvod",
+    "marketToken": "31BzkcazjG25MZu9gbm5eezYb3b3ozEuQAvXdyftD7Q1",
+    "indexToken": "ondoq3GfxTjnebAmpJ3mCLeoA2mZBRU8Kqoo6vTiaz1",
+    "longToken": "9wX6Qz1Y5YQe71dfnFYFfZYXZhKqjYKQwdqfrRkmYUSX",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "PEPE/USD[USDC-USDC]",
+    "address": "6BMPuHUGQxkrWHeHJtrEjWajmyeVWgVCfAmA1JZExhyv",
+    "marketToken": "4g6FhbTU5gYyqbFSudEsnZ7FgUAb5P9QAogJ6iVM6jYJ",
+    "indexToken": "PepeCS5SuDLkUwfnhmBLsPsVdpy9WR5bmXT4dkipR9i",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 5
+  },
+  {
+    "name": "PEPE/USD[WSOL-USDC]",
+    "address": "8XWLFLtBusYriWv2qwZa1k9tVXyRNjaG1zjV2qnrQfia",
+    "marketToken": "BeyjceC5eXoq3pkmdoDHrE2UVwuYamAdXkM9GmphZFhE",
+    "indexToken": "PepeCS5SuDLkUwfnhmBLsPsVdpy9WR5bmXT4dkipR9i",
+    "longToken": "So11111111111111111111111111111111111111112",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 5
+  },
+  {
+    "name": "PUMP/USD[USDC-USDC]",
+    "address": "2UgHvoJEvr6zUb2ke9VodgASTC9DdwYZ3tto1dvznDLt",
+    "marketToken": "C1d1rAehpY5U79593gB7ne7V4CDErYgAcwpvjSMd3dok",
+    "indexToken": "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 6
+  },
+  {
+    "name": "PUMP/USD[WPUMP-USDC]",
+    "address": "43orR3JJUEkqrGoYj3FeAnkv8c5B1CAKLXQoksmS6qsX",
+    "marketToken": "7yA3D8k5FmUb2jY2X8xiygtegybZEiD79BFiwEx1vNAG",
+    "indexToken": "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn",
+    "longToken": "HTHR6CbWSqrVCB83onNwKKH1W3qpGoKbpqvs9sgK7PEC",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 6
+  },
+  {
+    "name": "PUMP/USD[WPUMP-WPUMP]",
+    "address": "5D3j3C7dNep18GJGm4tKy9jez2PUN8q1kqypW1g8f3NJ",
+    "marketToken": "51jfNY9Wh7aBrLkGVqmuY362CZe8X9w7fysM7VeyKBRg",
+    "indexToken": "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn",
+    "longToken": "HTHR6CbWSqrVCB83onNwKKH1W3qpGoKbpqvs9sgK7PEC",
+    "shortToken": "HTHR6CbWSqrVCB83onNwKKH1W3qpGoKbpqvs9sgK7PEC",
+    "indexDecimals": 6
+  },
+  {
+    "name": "QQQ/USD[USDC-USDC]",
+    "address": "4rF2MSAmBmmcQvwJUzZSPwLrfG6FcPyQEne9q7KfzKTF",
+    "marketToken": "6KTCEqyMG9eErgSkfbe5QTc6eYnPcgJ4bKK63VZWqZWG",
+    "indexToken": "QqqSrHycWaS3f3o4fvEgeVfXfZbqdchUGB3rGxok9qj",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "SHIB/USD[USDC-USDC]",
+    "address": "8rLKTG4dHkDkvpoBvDHVDedF8n1xR5vt9kGTD3gs2xbV",
+    "marketToken": "6kKGHF9tPoXvtyAGUY8mfuRCFXBw61xWfhfS4sSJbXFr",
+    "indexToken": "ShibkCetJam99AeDv93Q4KKVkeLCBSLSmBKNLpwt1ik",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 6
+  },
+  {
+    "name": "SOL/USD[USDC-USDC]",
+    "address": "CJg17Dn4xgUyEW3gKSSyteNw7LhP1o9pzm9eLtvuNjkQ",
+    "marketToken": "6UU9sF5fryafHDYPcmVcV7ucfnYs6iMVcvb8p7SBQgTc",
+    "indexToken": "So1Zu7vPQQxrguzUehKAyVLpjcc769zxgBuDAsxTUMH",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 9
+  },
+  {
+    "name": "SOL/USD[WSOL-USDC]",
+    "address": "3M4vW1u8RT3HJSWqgEN1WuiUJZuVjJLQYEWvCHCuk56g",
+    "marketToken": "BwN2FWixP5JyKjJNyD1YcRKN1XhgvFtnzrPrkfyb4DkW",
+    "indexToken": "So1Zu7vPQQxrguzUehKAyVLpjcc769zxgBuDAsxTUMH",
+    "longToken": "So11111111111111111111111111111111111111112",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 9
+  },
+  {
+    "name": "SOL/USD[WSOL-WSOL]",
+    "address": "G96vsSW5KXvostjyBT7rZwSVZpbL8r3mdVjAP5zwCRbn",
+    "marketToken": "xiLDzynfr7JEoYinAEunZtdz9ubjVAqa5Ap7gJ9y43L",
+    "indexToken": "So1Zu7vPQQxrguzUehKAyVLpjcc769zxgBuDAsxTUMH",
+    "longToken": "So11111111111111111111111111111111111111112",
+    "shortToken": "So11111111111111111111111111111111111111112",
+    "indexDecimals": 9
+  },
+  {
+    "name": "SPCX/USD[USDC-USDC]",
+    "address": "YnH87HwE7JQUfztEiE9BZ3FoPnVsv1sPoXTxz5THNg1",
+    "marketToken": "5yhCwf9pEbX1t6uevDEgQu2m8q8dPuXi9LUgpPJkTurV",
+    "indexToken": "Spc8vPRaUMi4KKofgM8duFQRBK58xjS15pdzgioAAhD",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "SPY/USD[USDC-USDC]",
+    "address": "GXeGXbquknErGz31LaGkM39VXii1RQS5N6Y6BE5r3twh",
+    "marketToken": "AxsNWzai8PPMBfVHFZxAZbn9wK24z86ozHkbbZCVtFDh",
+    "indexToken": "SpyoXYfv2RmbLkURbxyXvxs83PFFNMiirXgZhBAgxBQ",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "SUI/USD[USDC-USDC]",
+    "address": "2feBYdqbq58GhJ749vWFLpZ7BSamBPp2GY3ahq9iUZ9L",
+    "marketToken": "FWw1tetkZETBz4iyToM7K1VhBMcnQQpHzqbHa1eqkdWe",
+    "indexToken": "SuiyRuzKdsxGgdhVJGg5dDz6wtNSQUAWN21zSdCmYXs",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 9
+  },
+  {
+    "name": "SUI/USD[WSOL-USDC]",
+    "address": "FL9PtuYSYuc2gj2eypbfh9EZxvW69ovfjUxgRxWf96j2",
+    "marketToken": "2MS6KM17L6JjQfAPfkzjezKre3xKsARdRQVjrdd6Kvmf",
+    "indexToken": "SuiyRuzKdsxGgdhVJGg5dDz6wtNSQUAWN21zSdCmYXs",
+    "longToken": "So11111111111111111111111111111111111111112",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 9
+  },
+  {
+    "name": "TAO/USD[WGMX-USDC]",
+    "address": "5ZWsf74tDHZ3BFgsqo6jY3bzoXYAorqgqmkKc3WKvwEs",
+    "marketToken": "2gYBsHNtxwj6Ydz159frrp7em7rT4KfEnk9a6AXDMyNV",
+    "indexToken": "TaouYgVPRRT3TUkfTK7fQWkoSM35cbuMVEFAXifsuAf",
+    "longToken": "9wX6Qz1Y5YQe71dfnFYFfZYXZhKqjYKQwdqfrRkmYUSX",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "TON/USD[WSOL-USDC]",
+    "address": "HNUzR4py2cB2woKEvwKfpoNyWmLbCipZkhNxiVYrBp9d",
+    "marketToken": "GX3bpUi5WyoJEjNjrLi3wPqV5xD9WcB1hEedLRSooi4H",
+    "indexToken": "TonDqfXQT4A9oexj8nWdQuUs97Zep5UG5auXByTKe79",
+    "longToken": "So11111111111111111111111111111111111111112",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 9
+  },
+  {
+    "name": "TRUMP/USD[TRUMP-USDC]",
+    "address": "HuXAeZbDUHbgkL3Sm3z9N7cB2SwEsM7toCYdG7K1eiyZ",
+    "marketToken": "Ac2FARLyGz8jdaT97tyHi1fgLFJ1dsbtQGg3YVxrk6q7",
+    "indexToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+    "longToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 6
+  },
+  {
+    "name": "TRUMP/USD[USDC-USDC]",
+    "address": "Cjn3DujxusMEkWz7JGEhB1974RMtqt4JtC2cQjEpatHo",
+    "marketToken": "Eck19AsZP2sqGp4oAkrstTrgUmxjF6nQSQxiiHerweLg",
+    "indexToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 6
+  },
+  {
+    "name": "TRUMP/USD[WSOL-USDC]",
+    "address": "D7bb8v6phmg6vHLMD4krwgEvZNAiWRArp76HkmpWBEmz",
+    "marketToken": "AyCysi8mWtHWs7TLe13tFPCB515kSQHmBqkszpAeEqbK",
+    "indexToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+    "longToken": "So11111111111111111111111111111111111111112",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 6
+  },
+  {
+    "name": "TRX/USD[USDC-USDC]",
+    "address": "DxzedaCTHjdBSANTyZoLAJktPVFXPLUe6RKkmeHvR7tE",
+    "marketToken": "4QX94xP34zFJyeTxJQ4oJ4MeWcuRYViCDmxTjwAYN9Vp",
+    "indexToken": "TrxYuLyf3WbYPrQ84cjyWgfcEeKTc7m5cKBNBZhY5MN",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "TSLA/USD[USDC-USDC]",
+    "address": "GAaRc9rnKfypjAC9rdGxuHvaUrj4h3j1X8k27YEZSECW",
+    "marketToken": "5vBmHGbDrPqJjLC87d8ZHmgt9YHximo5kEcBSnw3aKXs",
+    "indexToken": "Ts1F5Xa8WR4mGqpZ35bhDM56MHf7Zzvq3L6dYGXVdk4",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "UNI/USD[USDC-USDC]",
+    "address": "2M5qqpStu1ubp3ky4MEbD1gL1hk6ejbudmWM4joV1vTm",
+    "marketToken": "6udTz3TdPfKRZQ1GF1L372DkpFoFu4Hz2HSpyjdXrMVr",
+    "indexToken": "Unicsoj67GbDzQyWXQEh9vG5jBiVhMREtWBVDAFVpQq",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "UNI/USD[WSOL-USDC]",
+    "address": "2BUeZLxRpPQLpHbX8PW1i2PXDMfPfqnXkHDm9D38xrBJ",
+    "marketToken": "6dDEEisqtCL6Wh49gAHtXaoE9NkSKXHvLLuTqLPz9sDM",
+    "indexToken": "Unicsoj67GbDzQyWXQEh9vG5jBiVhMREtWBVDAFVpQq",
+    "longToken": "So11111111111111111111111111111111111111112",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "USD/CAD[USDC-USDC]",
+    "address": "2Bd27WFxFFxNM658GMDPFaJ7jf8DpRngSzxBSZEYiPEV",
+    "marketToken": "EERJDS82NSTazRF9jFdCGUTL6tBPg9FXe1yy7jvuS9V7",
+    "indexToken": "cadDuN2bphC1u8K61ZF9hJCshTRmEyVNd4qiMY28ijo",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 9
+  },
+  {
+    "name": "USD/CHF[USDC-USDC]",
+    "address": "3acvLUw2uWgp28mnQnfxbSugZzBkpLSpLLyMYSipy9yc",
+    "marketToken": "CF5KBpj9C3ZP4UnRBaaMbKghCyFGoUDVqAVfxu1ikZho",
+    "indexToken": "chfdyavofe2ZXsU67oBnruALSgftfTntvDw3MvyEVRs",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "USD/JPY[USDC-USDC]",
+    "address": "6HMNYgCVqWPN3MECHh7rU2E4GSN2Ubz7VRDEhhGobnFR",
+    "marketToken": "6WAqfHvHPixPNMUUUwK4ZiiUkQXe9X87smprTPR3rPqH",
+    "indexToken": "jpygxG9g45Lui4P3GQgfdfNSYcR9985HAcxBRPTHr66",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "USD/MXN[USDC-USDC]",
+    "address": "6KsAq6eqioP6xfoMZmkhfCsUpp1euk7FZAFLUy97qJ1h",
+    "marketToken": "73LP1hqW5fphVvwX2HrwcHfLce1fLRvS1axH4GqVYNCp",
+    "indexToken": "mxnZft9hb7nH93UxTApmXzk95Fg6BERE1PPRzwg6SLL",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "VVV/USD[WGMX-USDC]",
+    "address": "4ZAyBGrGicEzr9SgrvH7VnwNPHR72wcojctndLgzueM1",
+    "marketToken": "A5wbRLowPh1T3CtD31KN25i6NqW7wk6Kc5fkED3qCLCn",
+    "indexToken": "VvvGPgHYN8KiC7H4aUQwJdfze5uB6rxkL63nHymxjZM",
+    "longToken": "9wX6Qz1Y5YQe71dfnFYFfZYXZhKqjYKQwdqfrRkmYUSX",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "WIF/USD[USDC-USDC]",
+    "address": "3mnwrwT7Fra5NcEFcZN9Um8eKCyTWJKgvLK2QtQ8FScW",
+    "marketToken": "BXcGhms3ZnikNcEzU3ivKZJ8ia2Xn9jV1J6Kn8dUdUUH",
+    "indexToken": "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 6
+  },
+  {
+    "name": "WIF/USD[WIF-USDC]",
+    "address": "HvqkhmZ3b1MibKFBVTRQPsGVXgeNuoCLRRio1qjLzf6n",
+    "marketToken": "4H7wYvhiN3D3uZgt8SXjboKj9bMLdbNX23w3F1GisuvS",
+    "indexToken": "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm",
+    "longToken": "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 6
+  },
+  {
+    "name": "WIF/USD[WSOL-USDC]",
+    "address": "61tJ6CBGF8p1LphxWCYkpZ6GaZZtMfJHpAmpfcHAcwLo",
+    "marketToken": "FvuQqxh9MJLDXD1FvDdv5X4HecoTEYHJA5558z8ptim4",
+    "indexToken": "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm",
+    "longToken": "So11111111111111111111111111111111111111112",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 6
+  },
+  {
+    "name": "WLD/USD[WGMX-USDC]",
+    "address": "5PQpUVKqc2DwqRVVdY8L6DcPCZdimmwKm1tkPnBywrN8",
+    "marketToken": "JA3xB9zFPBsWaAeDveLd3ia7maznJdL9qzLP81z5r73Z",
+    "indexToken": "w1d1cTQ734BFeBdjUAHgH8tBk8EJ52PjcvroUq5Jekw",
+    "longToken": "9wX6Qz1Y5YQe71dfnFYFfZYXZhKqjYKQwdqfrRkmYUSX",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "WLFI/USD[USDC-USDC]",
+    "address": "3YwG4Mrktf7qX4muEKhjohJHeG4Qp2yGxTFknUdtzbLZ",
+    "marketToken": "9uQdTgDAvZgTwPYFGyzTaotAjSZcUKndwhLuzsQt1vto",
+    "indexToken": "WLFinEv6ypjkczcS83FZqFpgFZYwQXutRbxGe7oC16g",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 6
+  },
+  {
+    "name": "WTI/USD[USDC-USDC]",
+    "address": "2D83HfYgkvwKVphjmgZj9twmFXzvT2txTbTQasZ8fxn9",
+    "marketToken": "ZTn3eszWBDc96ryfYdmDZYd6cuaZ8WxfSCSG8GJnQ8d",
+    "indexToken": "wtikDoxPLXGSBHacYcLf6SwLQEW5dqGKhErA73QeCrJ",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "XAG/USD[USDC-USDC]",
+    "address": "CNrnkFdwTaJYetciqddPnRZFjxMZQdqptA8TNPHJqmAr",
+    "marketToken": "F5EW8CrjYkksMvhm8nWBNY9HepUGLLqcXiq5tRftRPX2",
+    "indexToken": "XagEFqWzJtB3XezX6KLQtGkBQDdTpcXYDG7X3EdMH2Y",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "XAU/USD[USDC-USDC]",
+    "address": "59uFARJWg7B8wcEuXzvkafiT4DuKemdNCN5bshDbwun9",
+    "marketToken": "HCEitzjS88T4x3EpZ14EkrcawbhnZdev48a2nQfwAi37",
+    "indexToken": "Xauxf2VJhbue14FGbp3W8XwfQSECHYpiPMNMWSCwjSR",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "XCU/USD[USDC-USDC]",
+    "address": "GJpf1qS9DBiCWphXkYhT9b5H2vRVrHWL4Y5s8xCCbxKb",
+    "marketToken": "J2dWy224HDioMg5TMWd9jganuMGdiigs5YFZ6QkLVBew",
+    "indexToken": "xcu22Giuo4jqkDgv3KtfyUrco3a42BFLTnS7XjQ5Taz",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 9
+  },
+  {
+    "name": "XLM/USD[USDC-USDC]",
+    "address": "Es1ub4yytdY9Y2vEatZiGwEdi4ZTDZzs1rnpdbsXFgWb",
+    "marketToken": "2aGHXNEJAHmsiSVdz5h4stSjnLfohs79iSJdkDdZBs4F",
+    "indexToken": "X1mpyVGnE5VhzwbAqLp1FuAW7oY45WPTDisbcEkbVLq",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "XMR/USD[WGMX-USDC]",
+    "address": "9aV83gcFiZXa61cPbUdx8MBVtehevLtNYoUofd8ierTC",
+    "marketToken": "4X9uP7QX3zqjwQUWJhVznodUYA7RLGquhR2E8WeZeNBk",
+    "indexToken": "Xmric3gq5zb9bcuUW5o2MePQsnni3FxG2wavk6REm6X",
+    "longToken": "9wX6Qz1Y5YQe71dfnFYFfZYXZhKqjYKQwdqfrRkmYUSX",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "XPD/USD[USDC-USDC]",
+    "address": "2kKPVTeFZWAsoX5kTYLkqisgweU6zUNGiHoD1Y6QybuC",
+    "marketToken": "94Mpdu745RWL2eBqu1SvuV2HnX9EfFQSGm3uxvfMBmv6",
+    "indexToken": "xpd2uvvfPfoogQxyrLyqE3NgSHSbkNNXr7bGnJWLB6n",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "XPL/USD[USDC-USDC]",
+    "address": "FXLZCCf9a4X51BQVPPGXhBspkpcS23ijswDwwHt87dxG",
+    "marketToken": "6D5w1vz5yqLUTXsCpFBUPcZ5AnbHBsgG6XVGpc2ZcttK",
+    "indexToken": "Xp1adJXBj9MhK7hwAbgPN2rhuiK64nfMYTSg9vzgUB2",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "XPT/USD[USDC-USDC]",
+    "address": "EJxEUuzx9wsVyMmwp5NcAP5ubQrbs7ppegMNvujkkfUs",
+    "marketToken": "DHtPBDyjAW82GGUV244gZR3TfMtFuYewwQ4qwpPFAsCP",
+    "indexToken": "xptah2VhwW4pcLdkMvUinEsDNvMXpgHiVfG2mmkEuGR",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  },
+  {
+    "name": "XRP/USD[USDC-USDC]",
+    "address": "2aRRwRiw3YbKdPwy7DAyyCQ9bLZR6q9u64znZpVwhXwp",
+    "marketToken": "6vUDkCZqCNF2dZnPRHDySDDYvvvVPQGM68qie4cYBQHL",
+    "indexToken": "XrpSaeAcbKAGv8P3kWbMbwbq8xcWgR548yvyiKKJUB9",
+    "longToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 6
+  },
+  {
+    "name": "XRP/USD[WSOL-USDC]",
+    "address": "AyLcLtXKdu2RPrabazZ9pDLfCjdHT7aZe71pDt8WgvSG",
+    "marketToken": "FVUbre5BEnWKAN5ZxQ6MUgezS1X2ZUecq4HZDDsa1Q6i",
+    "indexToken": "XrpSaeAcbKAGv8P3kWbMbwbq8xcWgR548yvyiKKJUB9",
+    "longToken": "So11111111111111111111111111111111111111112",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 6
+  },
+  {
+    "name": "ZEC/USD[WGMX-USDC]",
+    "address": "6M9j6yA5ADXJZ1qFm5J7bgdS24DayTEHSa2jKoUo8jtd",
+    "marketToken": "6RXHXFAXmAkNkgk59b15ycEKxYrdEYB8Sv7WiyUT24vj",
+    "indexToken": "A7bdiYdS5GjqGFtxf17ppRHtDKPkkRqbKtR27dxvQXaS",
+    "longToken": "9wX6Qz1Y5YQe71dfnFYFfZYXZhKqjYKQwdqfrRkmYUSX",
+    "shortToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "indexDecimals": 8
+  }
+]

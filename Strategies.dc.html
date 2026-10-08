@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"><style>body{margin:0;background:#0b0d0e;color:#eef1f0;font-family:Geist,system-ui,sans-serif}a{color:oklch(0.82 0.14 165)}a:hover{color:#eef1f0}input{font:inherit;color:inherit}button{font-family:inherit}</style></helmet>
+<div style="min-height:100vh;background:#0b0d0e;color:#eef1f0;position:relative">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;height:64px;padding:0 24px;border-bottom:1px solid #1d2124">
+    <div style="display:flex;align-items:center;gap:9px;font-weight:600;font-size:17px;letter-spacing:-0.02em"><div style="width:16px;height:16px;border-radius:4px;background:oklch(0.82 0.14 165)"></div>Tilt</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="display:flex;align-items:center;gap:7px;height:36px;padding:0 12px;border:1px solid #22272a;border-radius:9px;font-size:13px;color:#a4aca9"><div style="width:7px;height:7px;border-radius:50%;background:oklch(0.78 0.16 155)"></div>Solana</div>
+      <sc-if value="{{ connected }}" hint-placeholder-val="{{ true }}">
+        <button onClick="{{ connect }}" style="display:flex;align-items:center;gap:10px;height:36px;padding:0 14px;background:#151819;border:1px solid #22272a;border-radius:9px;color:#eef1f0;font:500 13px Geist,sans-serif;cursor:pointer"><span style="font-family:'Geist Mono',monospace;color:#a4aca9">{{ availFmt }} USDC</span><span>7xKp…3fQa</span></button>
+      </sc-if>
+      <sc-if value="{{ disconnected }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ connect }}" style="height:36px;padding:0 16px;background:#eef1f0;border:none;border-radius:9px;color:#0b0d0e;font:600 13px Geist,sans-serif;cursor:pointer">{{ connectLabel }}</button>
+      </sc-if>
+    </div>
+  </div>
+
+  <div style="max-width:1080px;margin:0 auto;padding:40px 24px 80px;display:flex;flex-direction:column;gap:24px">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <h1 style="margin:0;font-size:30px;font-weight:600;letter-spacing:-0.03em">Strategies</h1>
+        <div style="font-size:14px;color:#7d8784">Multi-leg perp strategies on GMTrade. Set one size — legs are split by the strategy's weights.</div>
+      </div>
+      <div style="display:flex;gap:28px;font-size:12px;color:#7d8784">
+        <div style="display:flex;flex-direction:column;gap:4px">Open<span style="font:500 15px 'Geist Mono',monospace;color:#eef1f0">{{ openCount }}</span></div>
+        <div style="display:flex;flex-direction:column;gap:4px">Collateral in use<span style="font:500 15px 'Geist Mono',monospace;color:#eef1f0">{{ usedFmt }}</span></div>
+        <div style="display:flex;flex-direction:column;gap:4px">Unrealized PnL<span style="font:500 15px 'Geist Mono',monospace;color:{{ totalPnlColor }}">{{ totalPnlFmt }}</span></div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;border:1px solid #1d2124;border-radius:14px;background:#0f1213;overflow:hidden">
+      <div style="display:grid;grid-template-columns:minmax(0,2.6fr) minmax(0,.8fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) 72px 20px;gap:16px;padding:12px 20px;font-size:12px;color:#7d8784;border-bottom:1px solid #1d2124">
+        <span>Strategy</span><span>Max lev.</span><span>Size</span><span>Collateral</span><span>PnL</span><span>Status</span><span></span>
+      </div>
+
+      <sc-for list="{{ strategies }}" as="st" hint-placeholder-count="4">
+        <div style="display:flex;flex-direction:column;border-bottom:1px solid #1d2124;background:{{ st.rowBg }}">
+          <div onClick="{{ st.onToggle }}" style="display:grid;grid-template-columns:minmax(0,2.6fr) minmax(0,.8fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) 72px 20px;gap:16px;align-items:center;padding:18px 20px;cursor:pointer">
+            <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+              <span style="font-size:15px;font-weight:600;letter-spacing:-0.01em">{{ st.name }}</span>
+              <div style="display:flex;gap:6px;flex-wrap:wrap">
+                <sc-for list="{{ st.chips }}" as="c" hint-placeholder-count="2">
+                  <span style="display:flex;align-items:center;gap:6px;padding:3px 8px;border-radius:6px;background:#151819;font:500 12px 'Geist Mono',monospace;color:#cfd5d3"><span style="color:{{ c.color }}">{{ c.side }}</span>{{ c.sym }}<span style="color:#7d8784">{{ c.w }}</span></span>
+                </sc-for>
+              </div>
+            </div>
+            <span style="font:500 14px 'Geist Mono',monospace;color:#a4aca9">{{ st.maxFmt }}</span>
+            <span style="font:500 14px 'Geist Mono',monospace;color:{{ st.valColor }}">{{ st.rowSize }}</span>
+            <span style="font:500 14px 'Geist Mono',monospace;color:{{ st.valColor }}">{{ st.rowColl }}</span>
+            <span style="font:500 14px 'Geist Mono',monospace;color:{{ st.pnlColor }}">{{ st.pnlFmt }}</span>
+            <span style="justify-self:start;padding:4px 9px;border-radius:6px;font-size:12px;font-weight:500;background:{{ st.statusBg }};color:{{ st.statusFg }}">{{ st.status }}</span>
+            <span style="display:flex;justify-content:center;color:#7d8784;font-size:12px;transform:rotate({{ st.rot }}deg);transition:transform .15s">▾</span>
+          </div>
+
+          <sc-if value="{{ st.expanded }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:18px;padding:0 20px 22px">
+              <div style="font-size:13px;line-height:1.5;color:#a4aca9;max-width:640px;text-wrap:pretty">{{ st.desc }}</div>
+
+              <sc-if value="{{ st.isDraft }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;flex-wrap:wrap;align-items:flex-start;gap:18px;padding:16px;border:1px solid #1d2124;border-radius:12px;background:#0b0d0e">
+                  <div style="flex:0 1 170px;display:flex;flex-direction:column;gap:8px">
+                    <span style="font-size:12px;color:#7d8784">Direction</span>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;height:46px;padding:3px;box-sizing:border-box;background:#151819;border-radius:10px">
+                      <button onClick="{{ st.setLong }}" style="border:none;border-radius:7px;background:{{ st.longBg }};color:{{ st.longFg }};font:600 13px Geist,sans-serif;cursor:pointer">Long</button>
+                      <button onClick="{{ st.setShort }}" style="border:none;border-radius:7px;background:{{ st.shortBg }};color:{{ st.shortFg }};font:600 13px Geist,sans-serif;cursor:pointer">Short</button>
+                    </div>
+                  </div>
+                  <div style="flex:1 1 200px;display:flex;flex-direction:column;gap:8px">
+                    <span style="font-size:12px;color:#7d8784">Size</span>
+                    <div style="display:flex;align-items:center;gap:6px;height:46px;padding:0 12px;box-sizing:border-box;border:1px solid #262b2e;border-radius:10px;background:#0f1213"><span style="font:500 17px 'Geist Mono',monospace;color:#5d6764">$</span><input value="{{ st.size }}" onChange="{{ st.onSize }}" inputmode="decimal" style="flex:1;min-width:0;background:none;border:none;outline:none;font:500 17px 'Geist Mono',monospace"><span style="font-size:12px;color:#7d8784">USD</span></div>
+                  </div>
+                  <div style="flex:2 1 300px;display:flex;flex-direction:column;gap:8px">
+                    <div style="display:flex;justify-content:space-between;font-size:12px;color:#7d8784"><span>Leverage</span><span style="font:600 15px 'Geist Mono',monospace;color:#eef1f0">{{ st.levFmt }}</span></div>
+                    <div style="display:flex;align-items:center;height:22px"><input type="range" min="0" max="1000" step="1" value="{{ st.levSlider }}" onChange="{{ st.onLev }}" style="width:100%;margin:0;accent-color:oklch(0.82 0.14 165)"></div>
+                    <div style="display:flex;gap:6px">
+                      <sc-for list="{{ st.presets }}" as="pr" hint-placeholder-count="5">
+                        <button onClick="{{ pr.onPick }}" style="flex:1;height:26px;border:1px solid {{ pr.bd }};border-radius:7px;background:none;color:{{ pr.fg }};font:500 12px 'Geist Mono',monospace;cursor:pointer">{{ pr.label }}</button>
+                      </sc-for>
+                    </div>
+                  </div>
+                </div>
+              </sc-if>
+
+              <div style="display:flex;flex-direction:column;border:1px solid #1d2124;border-radius:12px;overflow:hidden">
+                <div style="display:grid;grid-template-columns:1.3fr .7fr .7fr 1fr 1fr 1fr 1fr 1fr;gap:10px;padding:10px 14px;font-size:12px;color:#7d8784;background:#0b0d0e"><span>Leg</span><span>Side</span><span>Weight</span><span>Size</span><span>Collateral</span><span>{{ st.colEntry }}</span><span>{{ st.colLiq }}</span><span>{{ st.colLast }}</span></div>
+                <sc-for list="{{ st.legs }}" as="lg" hint-placeholder-count="2">
+                  <div style="display:grid;grid-template-columns:1.3fr .7fr .7fr 1fr 1fr 1fr 1fr 1fr;gap:10px;align-items:center;padding:12px 14px;border-top:1px solid #16191b;font:400 13px 'Geist Mono',monospace">
+                    <span style="font-family:Geist,sans-serif;font-weight:500">{{ lg.sym }}</span>
+                    <span style="color:{{ lg.sideColor }}">{{ lg.sideLabel }}</span>
+                    <span style="color:#a4aca9">{{ lg.w }}</span>
+                    <span>{{ lg.sizeFmt }}</span><span>{{ lg.collFmt }}</span><span>{{ lg.entryFmt }}</span><span style="color:#a4aca9">{{ lg.liqFmt }}</span>
+                    <span style="color:{{ lg.lastColor }}">{{ lg.lastFmt }}</span>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap">
+                <div style="display:flex;gap:28px;flex-wrap:wrap;font-size:12px;color:#7d8784">
+                  <div style="display:flex;flex-direction:column;gap:4px">Collateral · size ÷ leverage<span style="font:600 18px 'Geist Mono',monospace;color:#eef1f0">{{ st.collFmt }} <span style="font-size:12px;color:#7d8784">USDC</span></span></div>
+                  <div style="display:flex;flex-direction:column;gap:4px">{{ st.feeLabel }}<span style="font:500 15px 'Geist Mono',monospace;color:#cfd5d3">{{ st.feeFmt }}</span></div>
+                </div>
+                <button onClick="{{ st.onCta }}" style="height:46px;min-width:200px;padding:0 22px;border:{{ st.ctaBd }};border-radius:11px;background:{{ st.ctaBg }};color:{{ st.ctaFg }};font:600 14px Geist,sans-serif;cursor:pointer">{{ st.ctaLabel }}</button>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}"><div style="position:fixed;right:24px;bottom:24px;z-index:20;padding:12px 16px;border-radius:10px;background:#eef1f0;color:#0b0d0e;font-size:13px;font-weight:500;box-shadow:0 10px 30px rgba(0,0,0,.4)">{{ toast }}</div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const MARKETS={SOL:{sym:'SOL/USD',price:182.44,max:100,dp:2},BTC:{sym:'BTC/USD',price:118250,max:100,dp:0},ETH:{sym:'ETH/USD',price:4480.6,max:100,dp:2},SPY:{sym:'SPY/USD',price:671.2,max:50,dp:2},EUR:{sym:'EUR/USD',price:1.1642,max:200,dp:5},XAU:{sym:'XAU/USD',price:3961.5,max:100,dp:2}};
+const UP='oklch(0.78 0.16 155)',DN='oklch(0.7 0.18 25)',ACC='oklch(0.82 0.14 165)',BAL=5000,FEE=0.0006;
+const n2=(v,dp=2)=>v.toLocaleString('en-US',{minimumFractionDigits:dp,maximumFractionDigits:dp});
+const fmtLev=l=>(l<10?l.toFixed(1):Math.round(l))+'×';
+const num=s=>parseFloat(String(s).replace(/,/g,''))||0;
+const usd=(v,dp=2)=>(v>=0?'+':'−')+'$'+n2(Math.abs(v),dp);
+const DEFS=[
+ {id:1,name:'SOL / BTC relative value',desc:'Long SOL against BTC in equal notional. Profits when SOL outperforms BTC, regardless of overall market direction.',legs:[{mkt:'SOL',dir:1,w:.5},{mkt:'BTC',dir:-1,w:.5}]},
+ {id:2,name:'S&P 500 vs euro',desc:'Long S&P 500, short EUR/USD — gains when US equities rally and the dollar strengthens against the euro.',legs:[{mkt:'SPY',dir:1,w:.5},{mkt:'EUR',dir:-1,w:.5}]},
+ {id:3,name:'ETH beta-neutral',desc:'Long ETH hedged with a weighted basket of BTC and SOL to isolate ETH-specific performance.',legs:[{mkt:'ETH',dir:1,w:.5},{mkt:'BTC',dir:-1,w:.3},{mkt:'SOL',dir:-1,w:.2}]},
+ {id:4,name:'Dollar vs gold',desc:'Long EUR/USD and long gold — a weak-dollar expression across FX and commodities.',legs:[{mkt:'EUR',dir:1,w:.6},{mkt:'XAU',dir:1,w:.4}]}
+];
+class Component extends DCLogic{
+ state={connected:true,connecting:false,prices:Object.fromEntries(Object.entries(MARKETS).map(([k,m])=>[k,m.price])),pending:null,closing:null,toast:null,expanded:{2:true},
+  inputs:{1:{side:'long',size:'3,000',lev:5},2:{side:'long',size:'2,000',lev:4},3:{side:'long',size:'1,000',lev:3},4:{side:'long',size:'1,000',lev:10}},
+  open:{1:{side:'long',size:3000,lev:5,entries:{SOL:179.9,BTC:117600}}}};
+ componentDidMount(){this.t=setInterval(()=>this.setState(s=>{const p={...s.prices};for(const k in p)p[k]*=1+(Math.random()-0.5)*0.0016;return{prices:p}}),1500)}
+ componentWillUnmount(){clearInterval(this.t);clearTimeout(this.tt)}
+ flash(msg){this.setState({toast:msg});clearTimeout(this.tt);this.tt=setTimeout(()=>this.setState({toast:null}),2600)}
+ connect=()=>{if(this.state.connected)return this.setState({connected:false});this.setState({connecting:true});setTimeout(()=>this.setState({connecting:false,connected:true}),700)}
+ setIn(id,patch){this.setState(s=>({inputs:{...s.inputs,[id]:{...s.inputs[id],...patch}}}))}
+ pnlOf(d,o,P){return d.legs.reduce((a,l)=>{const dir=l.dir*(o.side==='long'?1:-1),e=o.entries[l.mkt];return a+dir*(P[l.mkt]-e)/e*o.size*l.w},0)}
+ renderVals(){
+  const s=this.state,P=s.prices;
+  const used=Object.values(s.open).reduce((a,o)=>a+o.size/o.lev,0);
+  const avail=s.connected?BAL-used:0;
+  let totalPnl=0;
+  const strategies=DEFS.map(d=>{
+   const exp=!!s.expanded[d.id],o=s.open[d.id],isOpen=!!o,inp=s.inputs[d.id];
+   const max=Math.min(...d.legs.map(l=>MARKETS[l.mkt].max));
+   const side=isOpen?o.side:inp.side,size=isOpen?o.size:num(inp.size),lev=isOpen?o.lev:inp.lev,long=side==='long';
+   const coll=size/lev,fee=size*FEE,pnl=isOpen?this.pnlOf(d,o,P):0;if(isOpen)totalPnl+=pnl;
+   const legs=d.legs.map(l=>{
+    const m=MARKETS[l.mkt],dir=l.dir*(long?1:-1),ls=size*l.w,entry=isOpen?o.entries[l.mkt]:P[l.mkt];
+    const liq=dir>0?entry*(1-0.9/lev):entry*(1+0.9/lev);
+    const lp=isOpen?dir*(P[l.mkt]-entry)/entry*ls:0;
+    return{sym:m.sym,sideLabel:dir>0?'Long':'Short',sideColor:dir>0?UP:DN,w:Math.round(l.w*100)+'%',sizeFmt:'$'+n2(ls,0),collFmt:n2(ls/lev),entryFmt:n2(entry,m.dp),liqFmt:size?n2(liq,m.dp):'—',
+     lastFmt:isOpen?usd(lp):n2(m.max,0)+'×',lastColor:isOpen?(lp>=0?UP:DN):'#a4aca9'}
+   });
+   let cta,ok=false,act;
+   if(isOpen){cta=s.closing===d.id?'Closing…':'Close strategy';ok=true;act=()=>{if(s.closing)return;this.setState({closing:d.id});setTimeout(()=>{this.setState(x=>{const op={...x.open};delete op[d.id];return{closing:null,open:op}});this.flash(`Closed ${d.name} · ${usd(pnl)} realized`)},900)}}
+   else{
+    if(!s.connected)cta=s.connecting?'Connecting…':'Connect wallet';
+    else if(s.pending===d.id)cta='Confirm in wallet…';
+    else if(size<10*d.legs.length)cta=`Min size $${10*d.legs.length}`;
+    else if(coll+fee>avail)cta='Insufficient USDC';
+    else{cta=`Open ${long?'Long':'Short'} · ${d.legs.length} legs`;ok=true}
+    act=()=>{if(!s.connected)return this.connect();if(!ok)return;this.setState({pending:d.id});setTimeout(()=>{this.setState(x=>({pending:null,open:{...x.open,[d.id]:{side,size,lev,entries:Object.fromEntries(d.legs.map(l=>[l.mkt,x.prices[l.mkt]]))}}}));this.flash(`${d.name} opened · ${n2(coll)} USDC posted`)},1100)};
+   }
+   const live=ok||(!isOpen&&!s.connected);
+   const presets=[2,5,10,25].filter(x=>x<max).concat([max]).map(x=>{const on=Math.abs(lev-x)<0.05;return{label:x===max?'Max':x+'×',onPick:()=>this.setIn(d.id,{lev:x}),bd:on?ACC:'#262b2e',fg:on?ACC:'#a4aca9'}});
+   return{name:d.name,desc:d.desc,expanded:exp,isOpen,isDraft:!isOpen,legs,presets,rot:exp?180:0,rowBg:exp?'#111517':'transparent',
+    onToggle:()=>this.setState(x=>({expanded:{...x.expanded,[d.id]:!x.expanded[d.id]}})),
+    chips:d.legs.map(l=>{const dir=l.dir*(long?1:-1);return{side:dir>0?'L':'S',color:dir>0?UP:DN,sym:l.mkt,w:Math.round(l.w*100)+'%'}}),
+    maxFmt:max+'×',rowSize:isOpen?'$'+n2(size,0):'—',rowColl:isOpen?n2(coll):'—',valColor:isOpen?'#eef1f0':'#5d6764',
+    pnlFmt:isOpen?usd(pnl):'—',pnlColor:isOpen?(pnl>=0?UP:DN):'#5d6764',
+    status:isOpen?'Open':'—',statusBg:isOpen?'oklch(0.78 0.16 155 / 0.14)':'transparent',statusFg:isOpen?UP:'#5d6764',
+    size:inp.size,levFmt:fmtLev(lev),levSlider:Math.round(1000*Math.log(lev/1.1)/Math.log(max/1.1)),
+    onSize:e=>{const raw=e.target.value.replace(/[^0-9.]/g,'');const [a,dd]=raw.split('.');const f=a?Number(a).toLocaleString('en-US'):'';this.setIn(d.id,{size:dd!==undefined?f+'.'+dd.slice(0,2):f})},
+    onLev:e=>{const raw=1.1*Math.pow(max/1.1,+e.target.value/1000);this.setIn(d.id,{lev:Math.min(max,Math.max(1.1,raw<10?Math.round(raw*10)/10:Math.round(raw)))})},
+    longBg:long?UP:'transparent',longFg:long?'#0b0d0e':'#7d8784',shortBg:long?'transparent':DN,shortFg:long?'#7d8784':'#0b0d0e',
+    setLong:()=>this.setIn(d.id,{side:'long'}),setShort:()=>this.setIn(d.id,{side:'short'}),
+    colEntry:isOpen?'Entry':'Price',colLiq:'Liq. price',colLast:isOpen?'PnL':'Max lev.',
+    collFmt:n2(coll),feeLabel:isOpen?'Close fee · 0.06%':'Open fee · 0.06%',feeFmt:'$'+n2(fee),
+    ctaLabel:cta,onCta:act,ctaBg:isOpen?'transparent':(live?ACC:'#1d2124'),ctaFg:isOpen?'#eef1f0':(live?'#0b0d0e':'#5d6764'),ctaBd:isOpen?'1px solid #2f3538':'none'}
+  });
+  return{strategies,connect:this.connect,connected:s.connected,disconnected:!s.connected,connectLabel:s.connecting?'Connecting…':'Connect wallet',
+   availFmt:n2(avail),usedFmt:n2(used)+' USDC',openCount:String(Object.keys(s.open).length),
+   totalPnlFmt:usd(totalPnl),totalPnlColor:totalPnl>=0?UP:DN,hasToast:!!s.toast,toast:s.toast};
+ }
+}
+</script>
+</body>
+</html>

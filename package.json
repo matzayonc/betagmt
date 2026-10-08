@@ -1,0 +1,19 @@
+{
+  "name": "betagmt",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "open-close": "NODE_OPTIONS=--experimental-wasm-modules tsx scripts/open-close.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@gmsol-labs/gmsol-sdk": "0.9.0",
+    "@solana/web3.js": "^1.98.0",
+    "bs58": "^6.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0"
+  }
+}

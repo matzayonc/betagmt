@@ -1,5 +1,5 @@
 // Port of design/Strategies.dc.html, wired to GMTrade (mainnet) via src/gmtrade.ts.
-import { Component, type CSSProperties, type ChangeEvent } from "react";
+import { Component, type ChangeEvent } from "react";
 import { PublicKey } from "@solana/web3.js";
 import {
   USDC_MINT,
@@ -29,7 +29,9 @@ import {
   type ReserveKey,
   type StrategyDef,
 } from "./config";
+import { Disclaimer, disclaimerAccepted } from "./Disclaimer";
 import { buildSwapTx, loadTokenPrices } from "./jupiter";
+import { css } from "./style";
 import {
   PACIFICA_MIN_DEPOSIT,
   PACIFICA_WITHDRAW_FEE,
@@ -54,23 +56,6 @@ const n2 = (v: number, dp = 2) => v.toLocaleString("en-US", { minimumFractionDig
 const fmtLev = (l: number) => (l < 10 ? l.toFixed(1) : Math.round(l)) + "×";
 const num = (s: string) => parseFloat(String(s).replace(/,/g, "")) || 0;
 const usd = (v: number, dp = 2) => (v >= 0 ? "+" : "−") + "$" + n2(Math.abs(v), dp);
-
-// Inline style strings from the design → React style objects (cached).
-const styleCache = new Map<string, CSSProperties>();
-function css(s: string): CSSProperties {
-  let out = styleCache.get(s);
-  if (!out) {
-    out = {};
-    for (const decl of s.split(";")) {
-      const i = decl.indexOf(":");
-      if (i < 0) continue;
-      const prop = decl.slice(0, i).trim().replace(/-([a-z])/g, (_, c: string) => c.toUpperCase());
-      (out as Record<string, string>)[prop] = decl.slice(i + 1).trim();
-    }
-    styleCache.set(s, out);
-  }
-  return out;
-}
 
 const usdUnits = (v: number) => BigInt(Math.round(v * 1e6)) * (USD_UNIT / 1_000_000n);
 const unitsToUsd = (v: bigint) => Number(v) / Number(USD_UNIT);
@@ -230,6 +215,10 @@ interface State {
   busy: Record<number, string>;
   toast: string | null;
   error: string | null;
+  /** The risk notice was accepted; nothing that touches the wallet runs before that. */
+  accepted: boolean;
+  /** Notice shown again for reading, after acceptance. */
+  showDisclaimer: boolean;
 }
 
 export class App extends Component<object, State> {
@@ -249,6 +238,8 @@ export class App extends Component<object, State> {
     busy: {},
     toast: null,
     error: null,
+    accepted: disclaimerAccepted(),
+    showDisclaimer: false,
   };
   private timers: ReturnType<typeof setInterval>[] = [];
   private toastTimer?: ReturnType<typeof setTimeout>;
@@ -266,7 +257,7 @@ export class App extends Component<object, State> {
       setInterval(this.refreshAccount, 10_000),
     );
     // Reconnect silently if the wallet already trusts this site.
-    getInjectedWallet()?.connect({ onlyIfTrusted: true }).then(({ publicKey }) => this.onConnected(publicKey)).catch(() => {});
+    if (this.state.accepted) getInjectedWallet()?.connect({ onlyIfTrusted: true }).then(({ publicKey }) => this.onConnected(publicKey)).catch(() => {});
   }
 
   /** Keep untouched size inputs at the strategy's minimum as market data loads and leverage changes. */
@@ -362,6 +353,7 @@ export class App extends Component<object, State> {
       await wallet?.disconnect().catch(() => {});
       return this.setState({ owner: null, balances: null, positions: {}, open: {} });
     }
+    if (!this.state.accepted) return;
     if (!wallet) return this.flash("No Solana wallet found — install Phantom");
     this.setState({ connecting: true });
     try { this.onConnected((await wallet.connect()).publicKey); } catch { this.setState({ connecting: false }); }
@@ -768,7 +760,7 @@ export class App extends Component<object, State> {
         else if (s.balances.sol < solNeeded) cta = `Need ~${solNeeded} SOL for fees`;
         else if (rt && rPrice === null) cta = `Loading ${rt.sym} price…`;
         else { cta = `Open ${long ? "Long" : "Short"} · ${legCount} legs`; ok = !anyBusy; }
-        act = () => { if (!connected) return void this.connect(); if (ok) void (pk ? this.openPacifica(d, side, size, lev) : this.openStrategy(d, side, size, lev)); };
+        act = () => { if (!this.state.accepted) return; if (!connected) return void this.connect(); if (ok) void (pk ? this.openPacifica(d, side, size, lev) : this.openStrategy(d, side, size, lev)); };
       }
       const live = ok || (!isOpen && !connected);
       const presets = max && !d.lev ? [2, 5, 10, 25].filter((x) => x < max).concat([max]).map((x) => {
@@ -811,7 +803,7 @@ export class App extends Component<object, State> {
   }
 
   render() {
-    const v = this.renderVals();
+    const v = this.renderVals(), s = this.state;
     const grid = "display:grid;grid-template-columns:minmax(0,2.6fr) minmax(0,.8fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) 72px 20px;gap:16px";
     const legGrid = "display:grid;grid-template-columns:1.3fr .7fr .7fr 1fr 1fr 1fr 1fr 1fr;gap:10px";
     return (
@@ -923,6 +915,19 @@ export class App extends Component<object, State> {
             ))}
           </div>
         </div>
+
+        <div style={css("max-width:1080px;margin:0 auto;padding:0 24px 40px;font-size:12px;line-height:1.5;color:#5d6764")}>
+          Experimental, unaudited software provided as is, without warranty. Not ready for production use; you can lose all funds you use with it, and the author takes no responsibility for any loss. Not financial advice.{" "}
+          <a href="#" onClick={(e) => { e.preventDefault(); this.setState({ showDisclaimer: true }); }}>Full disclaimer</a>
+        </div>
+
+        {(!s.accepted || s.showDisclaimer) && (
+          <Disclaimer
+            readOnly={s.accepted}
+            onAccept={() => this.setState({ accepted: true })}
+            onClose={() => this.setState({ showDisclaimer: false })}
+          />
+        )}
 
         {v.hasToast && <div style={css("position:fixed;right:24px;bottom:24px;z-index:20;max-width:420px;padding:12px 16px;border-radius:10px;background:#eef1f0;color:#0b0d0e;font-size:13px;font-weight:500;box-shadow:0 10px 30px rgba(0,0,0,.4)")}>{v.toast}</div>}
       </div>

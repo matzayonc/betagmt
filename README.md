@@ -115,6 +115,18 @@ It signs through any `WalletSigner`, so `useWallet()` from `@solana/wallet-adapt
 - The SDK is pinned to `0.9.0`, because the npm tarball for `0.10.0` contains no build files.
 - This is hackathon software that trades with real funds on mainnet. It has not been audited.
 
+## Disclaimer
+
+**Backdoor is experimental, unaudited software provided "as is", without warranty of any kind. It is not ready for production use.** It trades leveraged perpetual futures with real funds on mainnet, and bugs, third-party protocol failures, liquidation or price moves can cost you everything you put in.
+
+- Nothing here is financial, investment, legal or tax advice.
+- Backdoor is not affiliated with GMTrade, Pacifica, Jupiter, ONyc or any wallet, and has no control over them.
+- It is non-custodial: you sign every transaction yourself and are responsible for reviewing it.
+- You are responsible for making sure that using it is legal where you are.
+- To the maximum extent permitted by law, the author and contributors accept no responsibility or liability for any loss or damage arising from its use. You use it entirely at your own risk.
+
+The app shows this notice and requires you to accept it before it connects to a wallet.
+
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE). The license also disclaims all warranties and liability.

@@ -1,6 +1,6 @@
 // Port of design/Strategies.dc.html, wired to GMTrade (mainnet) via src/gmtrade.ts.
 import { Component, type CSSProperties, type ChangeEvent } from "react";
-import type { PublicKey } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import {
   USDC_MINT,
   USD_UNIT,
@@ -14,17 +14,20 @@ import {
   type MarketParams,
   type PositionInfo,
 } from "../../src/gmtrade";
-import { APP_MARKETS, connection, getInjectedWallet, loadBalances, loadMarketParams, walletSigner } from "./chain";
+import { APP_MARKETS, connection, getInjectedWallet, loadBalances, loadMarketParams, tokenBalance, walletSigner } from "./chain";
 import {
   MARKETS,
   MARKET_KEYS,
   MIN_COLLATERAL_MARGIN,
   PRIORITY_FEE_MICRO_LAMPORTS,
+  RESERVE_TOKENS,
   SOL_PER_LEG,
   STRATEGIES,
   type MarketKey,
+  type ReserveKey,
   type StrategyDef,
 } from "./config";
+import { buildSwapTx, loadTokenPrices } from "./jupiter";
 import { loadMarketStatus, loadPrices } from "./prices";
 
 // --- helpers from the design ---
@@ -58,6 +61,11 @@ const short = (pk: PublicKey) => { const s = pk.toBase58(); return `${s.slice(0,
 /** `size` is the largest leg's notional; other legs scale by their weight relative to it. */
 const legSize = (d: StrategyDef, w: number, size: number) => (size * w) / Math.max(...d.legs.map((l) => l.w));
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const RESERVE_KEYS = Object.keys(RESERVE_TOKENS) as ReserveKey[];
+const reserveMint = (k: ReserveKey) => new PublicKey(RESERVE_TOKENS[k].mint);
+/** USDC kept out of the reserve swap: the perp collateral plus its open fee. */
+const perpSpend = (d: StrategyDef, size: number, lev: number, params: Record<MarketKey, MarketParams>) =>
+  d.legs.reduce((a, l) => a + (legSize(d, l.w, size) * (1 / lev + params[l.mkt].orderFeeFactor)), 0);
 
 type Side = "long" | "short";
 
@@ -67,6 +75,8 @@ interface OpenRecord {
   size: number;
   lev: number;
   legs: { mkt: MarketKey; isLong: boolean; sizeUsd: number }[];
+  /** Reserve tokens bought on open: raw amount, and the USDC spent on them. */
+  reserve?: { amount: string; costUsdc: number };
   openedAt: number;
 }
 
@@ -93,7 +103,7 @@ function adoptFromPositions(
   }
   let next: Record<number, OpenRecord> | null = null;
   for (const d of STRATEGIES) {
-    if (open[d.id] || skip[d.id]) continue;
+    if (open[d.id] || skip[d.id] || d.reserve) continue;
     const maxW = Math.max(...d.legs.map((l) => l.w));
     for (const side of ["long", "short"] as const) {
       const legs = d.legs.map((l) => ({ mkt: l.mkt, isLong: l.dir * (side === "long" ? 1 : -1) > 0, rel: l.w / maxW }));
@@ -119,7 +129,11 @@ function adoptFromPositions(
 
 const storeKey = (owner: PublicKey) => `tilt.open.${owner.toBase58()}`;
 function loadRecords(owner: PublicKey): Record<number, OpenRecord> {
-  try { return JSON.parse(localStorage.getItem(storeKey(owner)) ?? "{}"); } catch { return {}; }
+  try {
+    const all: Record<number, OpenRecord> = JSON.parse(localStorage.getItem(storeKey(owner)) ?? "{}");
+    // Strategies removed from the list are dropped; their positions remain on GMTrade.
+    return Object.fromEntries(Object.entries(all).filter(([id]) => STRATEGIES.some((d) => d.id === +id)));
+  } catch { return {}; }
 }
 function saveRecords(owner: PublicKey, records: Record<number, OpenRecord>) {
   try { localStorage.setItem(storeKey(owner), JSON.stringify(records)); } catch { /* storage unavailable */ }
@@ -131,6 +145,7 @@ interface State {
   balances: { usdc: number; sol: number } | null;
   params: Record<MarketKey, MarketParams> | null;
   prices: Partial<Record<MarketKey, number | null>>;
+  reservePrices: Partial<Record<ReserveKey, number | null>>;
   /** Trading status per market from GMTrade (e.g. SPY outside US hours). */
   marketOpen: Partial<Record<MarketKey, boolean>>;
   positions: Record<string, PositionInfo | null>;
@@ -150,11 +165,12 @@ export class App extends Component<object, State> {
     balances: null,
     params: null,
     prices: {},
+    reservePrices: {},
     marketOpen: {},
     positions: {},
     open: {},
-    inputs: Object.fromEntries(STRATEGIES.map((d) => [d.id, { side: "long", size: "20", lev: 2 }])),
-    expanded: { 2: true },
+    inputs: Object.fromEntries(STRATEGIES.map((d) => [d.id, { side: "long", size: d.reserve ? "100" : "20", lev: d.lev ?? 2 }])),
+    expanded: { [STRATEGIES[0].id]: true },
     busy: {},
     toast: null,
     error: null,
@@ -200,6 +216,10 @@ export class App extends Component<object, State> {
       // Keep the last good value when a source temporarily has no price.
       this.setState((s) => ({ prices: Object.fromEntries(MARKET_KEYS.map((k) => [k, prices[k] ?? s.prices[k] ?? null])) }));
     } catch (e) { console.warn("prices", e); }
+    try {
+      const prices = await loadTokenPrices(RESERVE_KEYS.map(reserveMint));
+      this.setState((s) => ({ reservePrices: Object.fromEntries(RESERVE_KEYS.map((k) => [k, prices[RESERVE_TOKENS[k].mint] ?? s.reservePrices[k] ?? null])) }));
+    } catch (e) { console.warn("reserve prices", e); }
   };
 
   private async readPositions(legs: { mkt: MarketKey; isLong: boolean }[]) {
@@ -219,7 +239,7 @@ export class App extends Component<object, State> {
         let changed = false;
         for (const [id, rec] of Object.entries(open)) {
           if (s.busy[+id]) continue;
-          if (rec.legs.every((l) => positions[legKey(l.mkt, l.isLong)] === null)) { delete open[+id]; changed = true; }
+          if (!rec.reserve && rec.legs.every((l) => positions[legKey(l.mkt, l.isLong)] === null)) { delete open[+id]; changed = true; }
         }
         const adopted = adoptFromPositions(open, positions, s.busy);
         if (changed || adopted) saveRecords(owner, adopted ?? open);
@@ -273,25 +293,39 @@ export class App extends Component<object, State> {
       this.setBusy(d.id, "Preparing…");
       const before = await this.readPositions(legs);
       const { blockhash } = await connection.getLatestBlockhash();
-      const group = mergeTransactionGroups(legs.map((l) => buildOpenPositionTxs({
+      const groups = legs.map((l) => buildOpenPositionTxs({
         owner, market: APP_MARKETS[l.mkt], isLong: l.isLong, collateralToken: USDC_MINT,
         recentBlockhash: blockhash, computeUnitPriceMicroLamports: PRIORITY_FEE_MICRO_LAMPORTS,
         collateralAmount: BigInt(Math.floor((l.sizeUsd / lev) * 1e6)), sizeUsd: usdUnits(l.sizeUsd),
-      })));
+      }));
+      // The rest of the capital goes into the reserve token, in the same wallet prompt.
+      let reserve: OpenRecord["reserve"];
+      if (d.reserve) {
+        const costUsdc = Math.floor((size - perpSpend(d, size, lev, this.state.params!)) * 1e6) / 1e6;
+        const swap = await buildSwapTx(owner, USDC_MINT, reserveMint(d.reserve), BigInt(Math.round(costUsdc * 1e6)));
+        groups.push(swap.group);
+        reserve = { amount: swap.minOut.toString(), costUsdc };
+      }
       this.setBusy(d.id, "Confirm in wallet…");
-      await sendTransactionGroup(connection, walletSigner(wallet, owner, () => this.setBusy(d.id, "Submitting…")), group);
+      const reserveBefore = d.reserve ? await tokenBalance(owner, reserveMint(d.reserve)) : 0n;
+      await sendTransactionGroup(connection, walletSigner(wallet, owner, () => this.setBusy(d.id, "Submitting…")), mergeTransactionGroups(groups));
+      // Record what the swap actually delivered (at least the quote's minimum).
+      if (d.reserve && reserve) {
+        const got = (await tokenBalance(owner, reserveMint(d.reserve))) - reserveBefore;
+        if (got > BigInt(reserve.amount)) reserve.amount = got.toString();
+      }
       this.setBusy(d.id, "Waiting for keeper…");
       const target = (l: (typeof legs)[number]) => (before[legKey(l.mkt, l.isLong)]?.sizeUsd ?? 0n) + (usdUnits(l.sizeUsd) * 99n) / 100n;
       const filledNow = (p: Record<string, PositionInfo | null>) => legs.filter((l) => (p[legKey(l.mkt, l.isLong)]?.sizeUsd ?? 0n) >= target(l));
       const after = await this.waitForKeeper(legs, (p) => filledNow(p).length === legs.length);
       const filled = filledNow(after);
-      if (filled.length === 0) {
+      if (filled.length === 0 && !reserve) {
         this.flash(`${d.name}: orders were not executed (cancelled by keeper or timed out). Collateral is refunded on cancellation.`, 7000);
       } else {
-        const record: OpenRecord = { side, size, lev, legs: filled, openedAt: Date.now() };
+        const record: OpenRecord = { side, size, lev, legs: filled, reserve, openedAt: Date.now() };
         this.setState((s) => { const open = { ...s.open, [d.id]: record }; saveRecords(owner, open); return { open }; });
         this.flash(filled.length === legs.length
-          ? `${d.name} opened · ${n2(legs.reduce((a, l) => a + l.sizeUsd, 0) / lev)} USDC posted`
+          ? `${d.name} opened · ${n2(legs.reduce((a, l) => a + l.sizeUsd, 0) / lev)} USDC posted${reserve ? ` · ${n2(reserve.costUsdc)} USDC in ${RESERVE_TOKENS[d.reserve!].sym}` : ""}`
           : `${d.name}: only ${filled.length}/${legs.length} legs filled — review and close if needed`, 7000);
       }
     } catch (e) {
@@ -321,9 +355,22 @@ export class App extends Component<object, State> {
         if (legUnits * 1000n >= p.sizeUsd * 999n) return buildClosePositionTxs({ ...common(l), position: p });
         return buildDecreasePositionTxs({ ...common(l), sizeUsd: legUnits, collateralAmount: (p.collateralAmount * legUnits) / p.sizeUsd });
       });
+      const perpGroups = groups.length;
+      if (d.reserve && rec.reserve) {
+        // Sell this strategy's reserve tokens, or whatever is left of them in the wallet.
+        const held = await tokenBalance(owner, reserveMint(d.reserve));
+        const amount = held < BigInt(rec.reserve.amount) ? held : BigInt(rec.reserve.amount);
+        if (amount > 0n) groups.push((await buildSwapTx(owner, reserveMint(d.reserve), USDC_MINT, amount)).group);
+      }
       if (groups.length) {
         this.setBusy(d.id, "Confirm in wallet…");
         await sendTransactionGroup(connection, walletSigner(wallet, owner, () => this.setBusy(d.id, "Submitting…")), mergeTransactionGroups(groups));
+        if (rec.reserve) {
+          // The swap is done; only the perp legs are left to close.
+          this.setState((s) => { const open = { ...s.open, [d.id]: { ...rec, reserve: undefined } }; saveRecords(owner, open); return { open }; });
+        }
+      }
+      if (perpGroups) {
         this.setBusy(d.id, "Waiting for keeper…");
         const left = (l: (typeof legs)[number]) => current[legKey(l.mkt, l.isLong)]!.sizeUsd - (usdUnits(l.sizeUsd) * 99n) / 100n;
         const after = await this.waitForKeeper(legs, (p) => legs.every((l) => (p[legKey(l.mkt, l.isLong)]?.sizeUsd ?? 0n) <= left(l)));
@@ -351,12 +398,19 @@ export class App extends Component<object, State> {
       const exp = !!s.expanded[d.id], rec = s.open[d.id], isOpen = !!rec, inp = s.inputs[d.id], busy = s.busy[d.id];
       const params = s.params;
       const max = params ? Math.floor(Math.min(...d.legs.map((l) => params[l.mkt].maxLeverage))) : 0;
-      const side = isOpen ? rec.side : inp.side, size = isOpen ? rec.size : num(inp.size), lev = isOpen ? rec.lev : Math.min(inp.lev, max || inp.lev), long = side === "long";
+      const side = isOpen ? rec.side : inp.side, size = isOpen ? rec.size : num(inp.size), lev = isOpen ? rec.lev : Math.min(d.lev ?? inp.lev, max || inp.lev), long = side === "long";
       // Total notional: from the recorded legs once open, otherwise from the inputs.
       const total = isOpen ? rec.legs.reduce((a, l) => a + l.sizeUsd, 0) : d.legs.reduce((a, l) => a + legSize(d, l.w, size), 0);
       const coll = total / lev;
       const fee = params ? d.legs.reduce((a, l) => a + legSize(d, l.w, size) * params[l.mkt].orderFeeFactor, 0) : 0;
       const feeRate = total ? (fee / total) * 100 : 0;
+      const rt = d.reserve ? RESERVE_TOKENS[d.reserve] : null, rPrice = d.reserve ? s.reservePrices[d.reserve] ?? null : null;
+      // Reserve: USDC going in (draft) or spent (open), its token amount and current value.
+      const rCost = !d.reserve ? 0 : isOpen ? rec.reserve?.costUsdc ?? 0 : params ? Math.max(0, size - perpSpend(d, size, lev, params)) : 0;
+      const rAmount = isOpen && rec.reserve && rt ? Number(rec.reserve.amount) / 10 ** rt.decimals : rPrice ? rCost / rPrice : null;
+      const rPnl = isOpen && rec.reserve && rAmount !== null && rPrice !== null ? rAmount * rPrice - rCost : null;
+      /** Share of the capital, for strategies with a reserve. */
+      const capShare = (v: number) => (size ? Math.round((v / size) * 100) + "%" : "—");
 
       let pnl: number | null = isOpen ? 0 : null, collUsed = 0;
       const recLegSize = (l: (typeof d.legs)[number]) =>
@@ -379,13 +433,23 @@ export class App extends Component<object, State> {
         const liq = entry ? (dir > 0 ? entry * (1 - 0.9 / lev) : entry * (1 + 0.9 / lev)) : null;
         const legMax = params ? Math.floor(params[l.mkt].maxLeverage) : null;
         return {
-          sym: m.sym, sideLabel: dir > 0 ? "Long" : "Short", sideColor: dir > 0 ? UP : DN, w: Math.round(l.w * 100) + "%",
+          sym: m.sym as string, sideLabel: dir > 0 ? "Long" : "Short", sideColor: dir > 0 ? UP : DN, w: rt ? capShare(ls / lev) : Math.round(l.w * 100) + "%",
           sizeFmt: "$" + n2(ls, ls < 100 ? 2 : 0), collFmt: n2(legColl), entryFmt: entry ? n2(entry, m.dp) : "—",
           liqFmt: size && liq ? n2(liq, m.dp) : "—",
           lastFmt: isOpen ? (lp === null ? "—" : usd(lp)) : legMax ? n2(legMax, 0) + "×" : "—",
           lastColor: isOpen ? (lp === null ? "#a4aca9" : lp >= 0 ? UP : DN) : "#a4aca9",
         };
       });
+      if (rt && (!isOpen || rec.reserve)) {
+        legs.push({
+          sym: rt.sym, sideLabel: "Hold", sideColor: ACC, w: capShare(rCost),
+          sizeFmt: "$" + n2(rCost, rCost < 100 ? 2 : 0), collFmt: "—",
+          entryFmt: isOpen && rAmount ? n2(rCost / rAmount, 4) : rPrice ? n2(rPrice, 4) : "—", liqFmt: "—",
+          lastFmt: isOpen ? (rPnl === null ? "—" : usd(rPnl)) : "—",
+          lastColor: isOpen && rPnl !== null ? (rPnl >= 0 ? UP : DN) : "#a4aca9",
+        });
+        if (isOpen && pnl !== null) pnl = rPnl === null ? null : pnl + rPnl;
+      }
       if (isOpen) {
         used += collUsed;
         if (pnl === null) pnlKnown = false; else totalPnl += pnl;
@@ -413,13 +477,14 @@ export class App extends Component<object, State> {
         else if (!params || !s.balances) cta = "Loading…";
         else if (closedLegs.length) cta = closedLabel;
         else if (size < minSize) cta = `Min size $${n2(minSize)}`;
-        else if (coll + fee > s.balances.usdc) cta = "Insufficient USDC";
+        else if ((rt ? size : coll + fee) > s.balances.usdc) cta = "Insufficient USDC";
         else if (s.balances.sol < solNeeded) cta = `Need ~${solNeeded} SOL for fees`;
-        else { cta = `Open ${long ? "Long" : "Short"} · ${d.legs.length} legs`; ok = !anyBusy; }
+        else if (rt && rPrice === null) cta = `Loading ${rt.sym} price…`;
+        else { cta = `Open ${long ? "Long" : "Short"} · ${d.legs.length + (rt ? 1 : 0)} legs`; ok = !anyBusy; }
         act = () => { if (!connected) return void this.connect(); if (ok) this.openStrategy(d, side, size, lev); };
       }
       const live = ok || (!isOpen && !connected);
-      const presets = max ? [2, 5, 10, 25].filter((x) => x < max).concat([max]).map((x) => {
+      const presets = max && !d.lev ? [2, 5, 10, 25].filter((x) => x < max).concat([max]).map((x) => {
         const on = Math.abs(lev - x) < 0.05;
         return { label: x === max ? "Max" : x + "×", onPick: () => this.setIn(d.id, { lev: x }), bd: on ? ACC : "#262b2e", fg: on ? ACC : "#a4aca9" };
       }) : [];
@@ -427,8 +492,13 @@ export class App extends Component<object, State> {
       return {
         id: d.id, name: d.name, desc: d.desc, expanded: exp, isOpen, isDraft: !isOpen, legs, presets, rot: exp ? 180 : 0, rowBg: exp ? "#111517" : "transparent",
         onToggle: () => this.setState((x) => ({ expanded: { ...x.expanded, [d.id]: !x.expanded[d.id] } })),
-        chips: d.legs.map((l) => { const dir = l.dir * (long ? 1 : -1); return { side: dir > 0 ? "L" : "S", color: dir > 0 ? UP : DN, sym: l.mkt, w: Math.round(l.w * 100) + "%" }; }),
-        maxFmt: max ? max + "×" : "—", rowSize: isOpen ? "$" + n2(total, total < 100 ? 2 : 0) : "—", rowColl: isOpen ? n2(collUsed) : "—", valColor: isOpen ? "#eef1f0" : "#5d6764",
+        chips: [
+          ...d.legs.map((l) => { const dir = l.dir * (long ? 1 : -1); return { side: dir > 0 ? "L" : "S", color: dir > 0 ? UP : DN, sym: l.mkt, w: d.lev ? d.lev + "×" : Math.round(l.w * 100) + "%" }; }),
+          ...(rt ? [{ side: "+", color: ACC, sym: rt.sym, w: "yield" }] : []),
+        ],
+        maxFmt: d.lev ? d.lev + "× fixed" : max ? max + "×" : "—",
+        sizeLabel: rt ? "Capital" : "Size per leg", fixedLev: !!d.lev,
+        collLabel: rt ? `Collateral · ${rAmount !== null ? n2(rAmount) : "—"} ${rt.sym} reserve` : "Collateral · size ÷ leverage", rowSize: isOpen ? "$" + n2(total, total < 100 ? 2 : 0) : "—", rowColl: isOpen ? n2(collUsed) : "—", valColor: isOpen ? "#eef1f0" : "#5d6764",
         pnlFmt: isOpen && pnl !== null ? usd(pnl) : "—", pnlColor: isOpen && pnl !== null ? (pnl >= 0 ? UP : DN) : "#5d6764",
         status: busy ? "Pending" : isOpen ? "Open" : "—",
         statusBg: busy ? "oklch(0.82 0.14 85 / 0.14)" : isOpen ? "oklch(0.78 0.16 155 / 0.14)" : "transparent",
@@ -524,12 +594,12 @@ export class App extends Component<object, State> {
                           </div>
                         </div>
                         <div style={css("flex:1 1 200px;display:flex;flex-direction:column;gap:8px")}>
-                          <span style={css("font-size:12px;color:#7d8784")}>Size per leg</span>
+                          <span style={css("font-size:12px;color:#7d8784")}>{st.sizeLabel}</span>
                           <div style={css("display:flex;align-items:center;gap:6px;height:46px;padding:0 12px;box-sizing:border-box;border:1px solid #262b2e;border-radius:10px;background:#0f1213")}><span style={css("font:500 17px 'Geist Mono',monospace;color:#5d6764")}>$</span><input value={st.size} onChange={st.onSize} inputMode="decimal" style={css("flex:1;min-width:0;background:none;border:none;outline:none;font:500 17px 'Geist Mono',monospace")} /><span style={css("font-size:12px;color:#7d8784")}>USD</span></div>
                         </div>
                         <div style={css("flex:2 1 300px;display:flex;flex-direction:column;gap:8px")}>
                           <div style={css("display:flex;justify-content:space-between;font-size:12px;color:#7d8784")}><span>Leverage</span><span style={css("font:600 15px 'Geist Mono',monospace;color:#eef1f0")}>{st.levFmt}</span></div>
-                          <div style={css("display:flex;align-items:center;height:22px")}><input type="range" min="0" max="1000" step="1" value={st.levSlider} onChange={st.onLev} style={css("width:100%;margin:0;accent-color:oklch(0.82 0.14 165)")} /></div>
+                          {st.fixedLev ? <div style={css("font-size:12px;line-height:1.5;color:#7d8784")}>Fixed for this strategy</div> : <div style={css("display:flex;align-items:center;height:22px")}><input type="range" min="0" max="1000" step="1" value={st.levSlider} onChange={st.onLev} style={css("width:100%;margin:0;accent-color:oklch(0.82 0.14 165)")} /></div>}
                           <div style={css("display:flex;gap:6px")}>
                             {st.presets.map((pr) => (
                               <button key={pr.label} onClick={pr.onPick} style={css(`flex:1;height:26px;border:1px solid ${pr.bd};border-radius:7px;background:none;color:${pr.fg};font:500 12px 'Geist Mono',monospace;cursor:pointer`)}>{pr.label}</button>
@@ -554,7 +624,7 @@ export class App extends Component<object, State> {
 
                     <div style={css("display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap")}>
                       <div style={css("display:flex;gap:28px;flex-wrap:wrap;font-size:12px;color:#7d8784")}>
-                        <div style={css("display:flex;flex-direction:column;gap:4px")}>Collateral · size ÷ leverage<span style={css("font:600 18px 'Geist Mono',monospace;color:#eef1f0")}>{st.collFmt} <span style={css("font-size:12px;color:#7d8784")}>USDC</span></span></div>
+                        <div style={css("display:flex;flex-direction:column;gap:4px")}>{st.collLabel}<span style={css("font:600 18px 'Geist Mono',monospace;color:#eef1f0")}>{st.collFmt} <span style={css("font-size:12px;color:#7d8784")}>USDC</span></span></div>
                         <div style={css("display:flex;flex-direction:column;gap:4px")}>{st.feeLabel}<span style={css("font:500 15px 'Geist Mono',monospace;color:#cfd5d3")}>{st.feeFmt}</span></div>
                       </div>
                       <button onClick={st.onCta} style={css(`height:46px;min-width:200px;padding:0 22px;border:${st.ctaBd};border-radius:11px;background:${st.ctaBg};color:${st.ctaFg};font:600 14px Geist,sans-serif;cursor:pointer`)}>{st.ctaLabel}</button>

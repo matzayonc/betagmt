@@ -79,3 +79,10 @@ export function walletSigner(wallet: InjectedWallet, publicKey: PublicKey, onSig
     },
   };
 }
+
+/** Raw token balance of the owner's associated account (0 if it doesn't exist). */
+export async function tokenBalance(owner: PublicKey, mint: PublicKey): Promise<bigint> {
+  const info = await connection.getParsedAccountInfo(findAssociatedTokenAddress(owner, mint));
+  const data = info.value?.data;
+  return data && "parsed" in data ? BigInt(data.parsed.info.tokenAmount.amount) : 0n;
+}

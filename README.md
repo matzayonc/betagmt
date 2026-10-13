@@ -8,10 +8,8 @@ GMTrade lists crypto, equity, FX and commodity perps side by side, but each posi
 
 | Strategy | Legs |
 | --- | --- |
-| SOL / BTC relative value | long SOL, short BTC (50/50) |
 | S&P 500 vs euro | long SPY, short EUR/USD (50/50) |
-| ETH beta-neutral | long ETH, short BTC 30%, short SOL 20% |
-| Dollar vs gold | long EUR/USD 60%, long XAU 40% |
+| S&P 500 on yield | long SPY at a fixed 10×, with the other 90% of the capital in [ONyc](https://www.onre.finance/) (swapped through Jupiter) |
 
 Shorting a strategy flips every leg. Strategies are defined in `app/src/config.ts`.
 

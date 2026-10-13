@@ -31,16 +31,32 @@ export interface StrategyLeg {
   w: number;
 }
 
+/** Yield-bearing tokens a strategy can park its spare capital in, bought and sold through Jupiter. */
+export const RESERVE_TOKENS = {
+  ONyc: { sym: "ONyc", mint: "5Y8NV33Vv7WbnLfq3zBcKSdYPrk7g2KoiQoe7M2tcxp5", decimals: 9 },
+} as const;
+
+export type ReserveKey = keyof typeof RESERVE_TOKENS;
+
 export interface StrategyDef {
   id: number;
   name: string;
   desc: string;
   legs: StrategyLeg[];
+  /** Fixed leverage (no slider). */
+  lev?: number;
+  /**
+   * With a reserve, the typed size is the capital: perp collateral is size ÷ leverage and the
+   * rest (less fees) is swapped into this token.
+   */
+  reserve?: ReserveKey;
 }
 
 export const STRATEGIES: StrategyDef[] = [
-  { id: 1, name: "SOL / BTC relative value", desc: "Long SOL against BTC in equal notional. Profits when SOL outperforms BTC, regardless of overall market direction.", legs: [{ mkt: "SOL", dir: 1, w: 0.5 }, { mkt: "BTC", dir: -1, w: 0.5 }] },
   { id: 2, name: "S&P 500 vs euro", desc: "Long S&P 500, short EUR/USD — gains when US equities rally and the dollar strengthens against the euro.", legs: [{ mkt: "SPY", dir: 1, w: 0.5 }, { mkt: "EUR", dir: -1, w: 0.5 }] },
-  { id: 3, name: "ETH beta-neutral", desc: "Long ETH hedged with a weighted basket of BTC and SOL to isolate ETH-specific performance.", legs: [{ mkt: "ETH", dir: 1, w: 0.5 }, { mkt: "BTC", dir: -1, w: 0.3 }, { mkt: "SOL", dir: -1, w: 0.2 }] },
-  { id: 4, name: "Dollar vs gold", desc: "Long EUR/USD and long gold — a weak-dollar expression across FX and commodities.", legs: [{ mkt: "EUR", dir: 1, w: 0.6 }, { mkt: "XAU", dir: 1, w: 0.4 }] },
+  {
+    id: 5, name: "S&P 500 on yield", lev: 10, reserve: "ONyc",
+    desc: "Full S&P 500 exposure on your capital while most of it earns yield. A 10× SPY perp needs only 10% as collateral; the other 90% is swapped into ONyc, OnRe's yield-bearing reinsurance token, and swapped back to USDC on close.",
+    legs: [{ mkt: "SPY", dir: 1, w: 1 }],
+  },
 ];

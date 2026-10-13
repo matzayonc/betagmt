@@ -19,15 +19,33 @@ import {
   MARKETS,
   MARKET_KEYS,
   MIN_COLLATERAL_MARGIN,
+  PACIFICA_MARKETS,
   PRIORITY_FEE_MICRO_LAMPORTS,
   RESERVE_TOKENS,
   SOL_PER_LEG,
   STRATEGIES,
   type MarketKey,
+  type PacificaKey,
   type ReserveKey,
   type StrategyDef,
 } from "./config";
 import { buildSwapTx, loadTokenPrices } from "./jupiter";
+import {
+  PACIFICA_MIN_DEPOSIT,
+  PACIFICA_WITHDRAW_FEE,
+  buildPacificaDepositTx,
+  loadPacificaAccount,
+  loadPacificaMarket,
+  loadPacificaPositions,
+  loadPacificaPrice,
+  placePacificaMarketOrders,
+  requestPacificaWithdrawal,
+  toLots,
+  type PacificaAccount,
+  type PacificaMarket,
+  type PacificaPosition,
+  type SignMessage,
+} from "./pacifica";
 import { loadMarketStatus, loadPrices } from "./prices";
 
 // --- helpers from the design ---
@@ -63,6 +81,13 @@ const legSize = (d: StrategyDef, w: number, size: number) => (size * w) / Math.m
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const RESERVE_KEYS = Object.keys(RESERVE_TOKENS) as ReserveKey[];
 const reserveMint = (k: ReserveKey) => new PublicKey(RESERVE_TOKENS[k].mint);
+/** Pacifica's level-0 taker fee, used until the account's own rate is known. */
+const PACIFICA_TAKER_FEE = 0.0004;
+/** USDC deposited to Pacifica as margin for a capital `size`: its fixed share, in whole cents. */
+const pacificaDeposit = (d: StrategyDef, size: number) => Math.floor(size * d.marginShare! * 100) / 100;
+const PACIFICA_SYMBOLS = [...new Set(STRATEGIES.flatMap((d) => (d.pacifica ?? []).map((l) => l.mkt)))];
+/** Pacifica leg notional for a capital `size`: the largest leg matches the deposit, others scale by weight. */
+const pacLegSize = (d: StrategyDef, w: number, size: number) => (pacificaDeposit(d, size) * w) / Math.max(...d.pacifica!.map((l) => l.w));
 /** USDC kept out of the reserve swap: the perp collateral plus its open fee. */
 const perpSpend = (d: StrategyDef, size: number, lev: number, params: Record<MarketKey, MarketParams>) =>
   d.legs.reduce((a, l) => a + (legSize(d, l.w, size) * (1 / lev + params[l.mkt].orderFeeFactor)), 0);
@@ -77,6 +102,15 @@ interface OpenRecord {
   legs: { mkt: MarketKey; isLong: boolean; sizeUsd: number }[];
   /** Reserve tokens bought on open: raw amount, and the USDC spent on them. */
   reserve?: { amount: string; costUsdc: number };
+  /**
+   * Pacifica legs: base `amount` held by this strategy per market, the USDC `deposit`ed for
+   * them, and once they are closed, the USDC to `withdraw`. Removed after the withdrawal is requested.
+   */
+  pacifica?: {
+    legs: { mkt: PacificaKey; isLong: boolean; amount: string; entry?: number }[];
+    deposit: number;
+    withdraw?: number;
+  };
   openedAt: number;
 }
 
@@ -140,6 +174,38 @@ function saveRecords(owner: PublicKey, records: Record<number, OpenRecord>) {
   try { localStorage.setItem(storeKey(owner), JSON.stringify(records)); } catch { /* storage unavailable */ }
 }
 
+/** Highest leverage every leg allows (0 until market data loads). */
+function maxLevOf(d: StrategyDef, s: State): number {
+  if (d.pacifica) {
+    const ms = d.pacifica.map((l) => s.pac.markets[l.mkt]);
+    return ms.every(Boolean) ? Math.min(...ms.map((m) => m!.maxLeverage)) : 0;
+  }
+  const params = s.params;
+  return params ? Math.floor(Math.min(...d.legs.map((l) => params[l.mkt].maxLeverage))) : 0;
+}
+
+/** Smallest size that gives every leg enough collateral (Pacifica: its minimum deposit and order); null until loaded. */
+function minSizeOf(d: StrategyDef, lev: number, s: State): number | null {
+  if (d.pacifica) {
+    const legs = d.pacifica;
+    if (!legs.every((l) => s.pac.markets[l.mkt] && s.pac.prices[l.mkt] != null)) return null;
+    // Every leg clears its minimum order after rounding down to whole lots (plus 1% for price
+    // moves), and the deposit clears Pacifica's minimum.
+    const maxW = Math.max(...legs.map((l) => l.w));
+    const legMin = (l: (typeof legs)[number]) => {
+      const m = s.pac.markets[l.mkt]!;
+      return ((m.minOrderUsd + m.lotSize * s.pac.prices[l.mkt]!) * 1.01) / ((d.marginShare! * l.w) / maxW);
+    };
+    return Math.ceil(Math.max(...legs.map(legMin), PACIFICA_MIN_DEPOSIT / d.marginShare!) * 100) / 100;
+  }
+  const params = s.params;
+  if (!params) return null;
+  const minColl = Math.max(...d.legs.map((l) => params[l.mkt].minCollateralUsd)) * MIN_COLLATERAL_MARGIN;
+  return Math.ceil(Math.max(...d.legs.map((l) => (minColl * lev) / legSize(d, l.w, 1))) * 100) / 100;
+}
+
+const effectiveLev = (d: StrategyDef, inputLev: number, max: number) => Math.min(d.lev ?? inputLev, max || inputLev);
+
 interface State {
   owner: PublicKey | null;
   connecting: boolean;
@@ -147,11 +213,18 @@ interface State {
   params: Record<MarketKey, MarketParams> | null;
   prices: Partial<Record<MarketKey, number | null>>;
   reservePrices: Partial<Record<ReserveKey, number | null>>;
+  pac: {
+    markets: Partial<Record<string, PacificaMarket>>;
+    prices: Partial<Record<string, number | null>>;
+    account: PacificaAccount | null;
+    positions: Record<string, PacificaPosition>;
+  };
   /** Trading status per market from GMTrade (e.g. SPY outside US hours). */
   marketOpen: Partial<Record<MarketKey, boolean>>;
   positions: Record<string, PositionInfo | null>;
   open: Record<number, OpenRecord>;
-  inputs: Record<number, { side: Side; size: string; lev: number }>;
+  /** `touched`: the size was typed; until then it follows the strategy's minimum. */
+  inputs: Record<number, { side: Side; size: string; lev: number; touched?: boolean }>;
   expanded: Record<number, boolean>;
   /** Strategy id → progress label while an open/close is in flight. */
   busy: Record<number, string>;
@@ -167,10 +240,11 @@ export class App extends Component<object, State> {
     params: null,
     prices: {},
     reservePrices: {},
+    pac: { markets: {}, prices: {}, account: null, positions: {} },
     marketOpen: {},
     positions: {},
     open: {},
-    inputs: Object.fromEntries(STRATEGIES.map((d) => [d.id, { side: "long", size: d.reserve ? "100" : "20", lev: d.lev ?? 2 }])),
+    inputs: Object.fromEntries(STRATEGIES.map((d) => [d.id, { side: "long", size: "", lev: d.lev ?? 2 }])),
     expanded: { [STRATEGIES[0].id]: true },
     busy: {},
     toast: null,
@@ -181,6 +255,9 @@ export class App extends Component<object, State> {
 
   componentDidMount() {
     loadMarketParams().then((params) => this.setState({ params })).catch((e) => this.setState({ error: `Failed to load markets: ${e.message}` }));
+    Promise.all(PACIFICA_SYMBOLS.map((k) => loadPacificaMarket(PACIFICA_MARKETS[k].symbol)))
+      .then((ms) => this.setState((s) => ({ pac: { ...s.pac, markets: Object.fromEntries(PACIFICA_SYMBOLS.map((k, i) => [k, ms[i]])) } })))
+      .catch((e) => this.setState({ error: `Failed to load Pacifica markets: ${e.message}` }));
     this.refreshPrices();
     this.refreshMarketStatus();
     this.timers.push(
@@ -190,6 +267,19 @@ export class App extends Component<object, State> {
     );
     // Reconnect silently if the wallet already trusts this site.
     getInjectedWallet()?.connect({ onlyIfTrusted: true }).then(({ publicKey }) => this.onConnected(publicKey)).catch(() => {});
+  }
+
+  /** Keep untouched size inputs at the strategy's minimum as market data loads and leverage changes. */
+  componentDidUpdate() {
+    const patch: State["inputs"] = {};
+    for (const d of STRATEGIES) {
+      const inp = this.state.inputs[d.id];
+      if (inp.touched || this.state.open[d.id]) continue;
+      const min = minSizeOf(d, effectiveLev(d, inp.lev, maxLevOf(d, this.state)), this.state);
+      const size = min === null ? "" : min.toLocaleString("en-US", { maximumFractionDigits: 2 });
+      if (size !== inp.size) patch[d.id] = { ...inp, size };
+    }
+    if (Object.keys(patch).length) this.setState((s) => ({ inputs: { ...s.inputs, ...patch } }));
   }
 
   componentWillUnmount() {
@@ -221,7 +311,17 @@ export class App extends Component<object, State> {
       const prices = await loadTokenPrices(RESERVE_KEYS.map(reserveMint));
       this.setState((s) => ({ reservePrices: Object.fromEntries(RESERVE_KEYS.map((k) => [k, prices[RESERVE_TOKENS[k].mint] ?? s.reservePrices[k] ?? null])) }));
     } catch (e) { console.warn("reserve prices", e); }
+    try {
+      const prices = await Promise.all(PACIFICA_SYMBOLS.map((k) => loadPacificaPrice(PACIFICA_MARKETS[k].symbol)));
+      this.setState((s) => ({ pac: { ...s.pac, prices: Object.fromEntries(PACIFICA_SYMBOLS.map((k, i) => [k, prices[i] ?? s.pac.prices[k] ?? null])) } }));
+    } catch (e) { console.warn("pacifica prices", e); }
   };
+
+  private async refreshPacifica(owner: PublicKey) {
+    const [account, positions] = await Promise.all([loadPacificaAccount(owner), loadPacificaPositions(owner)]);
+    this.setState((s) => ({ pac: { ...s.pac, account, positions } }));
+    return { account, positions };
+  }
 
   private async readPositions(legs: { mkt: MarketKey; isLong: boolean }[]) {
     const owner = this.state.owner!;
@@ -233,14 +333,17 @@ export class App extends Component<object, State> {
     const owner = this.state.owner;
     if (!owner) return;
     try {
-      const [balances, positions] = await Promise.all([loadBalances(owner), this.readPositions(ALL_LEGS)]);
+      const [balances, positions] = await Promise.all([
+        loadBalances(owner), this.readPositions(ALL_LEGS), PACIFICA_SYMBOLS.length ? this.refreshPacifica(owner) : null,
+      ]);
       this.setState((s) => {
-        // Drop strategies whose positions were closed elsewhere (or liquidated).
+        // Drop strategies whose positions were closed elsewhere (or liquidated). Records still
+        // holding reserve tokens or Pacifica funds stay, so closing can return them.
         const open = { ...s.open };
         let changed = false;
         for (const [id, rec] of Object.entries(open)) {
-          if (s.busy[+id]) continue;
-          if (!rec.reserve && rec.legs.every((l) => positions[legKey(l.mkt, l.isLong)] === null)) { delete open[+id]; changed = true; }
+          if (s.busy[+id] || rec.reserve || rec.pacifica) continue;
+          if (rec.legs.every((l) => positions[legKey(l.mkt, l.isLong)] === null)) { delete open[+id]; changed = true; }
         }
         const adopted = adoptFromPositions(open, positions, s.busy);
         if (changed || adopted) saveRecords(owner, adopted ?? open);
@@ -339,6 +442,156 @@ export class App extends Component<object, State> {
     }
   }
 
+  private signer(): SignMessage {
+    const wallet = getInjectedWallet()!;
+    return async (message) => (await wallet.signMessage(message, "utf8")).signature;
+  }
+
+  private saveRecord(owner: PublicKey, id: number, rec: OpenRecord | null) {
+    this.setState((s) => {
+      const open = { ...s.open };
+      if (rec) open[id] = rec; else delete open[id];
+      saveRecords(owner, open);
+      return { open };
+    });
+  }
+
+  /**
+   * Pacifica + reserve: one transaction prompt deposits the shared margin and buys the reserve
+   * token, then the legs' orders are signed and sent as one batch once Pacifica credits the deposit.
+   */
+  async openPacifica(d: StrategyDef, side: Side, size: number, lev: number) {
+    const owner = this.state.owner!, wallet = getInjectedWallet()!, { markets, prices } = this.state.pac;
+    const legs = d.pacifica!.map((l) => {
+      const pm = PACIFICA_MARKETS[l.mkt], price = prices[l.mkt]!;
+      return { mkt: l.mkt, symbol: pm.symbol, isLong: l.dir * (side === "long" ? 1 : -1) > 0, price,
+        amount: toLots(pacLegSize(d, l.w, size) / price, markets[l.mkt]!.lotSize) };
+    });
+    const deposit = pacificaDeposit(d, size);
+    let rec: OpenRecord | null = null;
+    try {
+      this.setBusy(d.id, "Preparing…");
+      const before = await loadPacificaAccount(owner);
+      const { blockhash } = await connection.getLatestBlockhash();
+      const groups = [buildPacificaDepositTx(owner, deposit, blockhash)];
+      let reserve: OpenRecord["reserve"];
+      if (d.reserve) {
+        const costUsdc = Math.floor((size - deposit) * 1e6) / 1e6;
+        const swap = await buildSwapTx(owner, USDC_MINT, reserveMint(d.reserve), BigInt(Math.round(costUsdc * 1e6)));
+        groups.push(swap.group);
+        reserve = { amount: swap.minOut.toString(), costUsdc };
+      }
+      this.setBusy(d.id, "Confirm in wallet…");
+      const reserveBefore = d.reserve ? await tokenBalance(owner, reserveMint(d.reserve)) : 0n;
+      await sendTransactionGroup(connection, walletSigner(wallet, owner, () => this.setBusy(d.id, "Submitting…")), mergeTransactionGroups(groups));
+      if (d.reserve && reserve) {
+        const got = (await tokenBalance(owner, reserveMint(d.reserve))) - reserveBefore;
+        if (got > BigInt(reserve.amount)) reserve.amount = got.toString();
+      }
+      // Funds are out of the wallet from here on; record them so closing can bring them back.
+      rec = { side, size, lev, legs: [], reserve, openedAt: Date.now(),
+        pacifica: { legs: legs.map((l) => ({ mkt: l.mkt, isLong: l.isLong, amount: "0" })), deposit } };
+      this.saveRecord(owner, d.id, rec);
+
+      this.setBusy(d.id, "Waiting for Pacifica deposit…");
+      const credited = (a: PacificaAccount | null) => (a?.availableToSpend ?? 0) >= (before?.availableToSpend ?? 0) + deposit * 0.99;
+      const deadline = Date.now() + 120_000;
+      let snap = await this.refreshPacifica(owner);
+      while (!credited(snap.account)) {
+        if (Date.now() > deadline) throw new Error("Pacifica hasn't credited the deposit yet. It's tracked here; close the strategy to withdraw it");
+        await sleep(3_000);
+        snap = await this.refreshPacifica(owner);
+      }
+
+      this.setBusy(d.id, `Sign ${legs.length} orders in wallet…`);
+      const posBefore = snap.positions;
+      await placePacificaMarketOrders(owner, this.signer(), legs.map((l) => ({ symbol: l.symbol, isLong: l.isLong, amount: l.amount, reduceOnly: false })));
+      this.setBusy(d.id, "Waiting for fill…");
+      const net = (p?: PacificaPosition) => (p ? (p.side === "bid" ? 1 : -1) * p.amount : 0);
+      const filledOf = (ps: Record<string, PacificaPosition>) => legs.map((l) => (net(ps[l.symbol]) - net(posBefore[l.symbol])) * (l.isLong ? 1 : -1));
+      let positions = posBefore, filled = filledOf(positions);
+      for (let i = 0; i < 10 && filled.some((f) => f <= 0); i++) {
+        await sleep(1_000);
+        positions = (await this.refreshPacifica(owner)).positions;
+        filled = filledOf(positions);
+      }
+      rec = { ...rec, pacifica: { ...rec.pacifica!, legs: legs.map((l, i) => ({
+        mkt: l.mkt, isLong: l.isLong, amount: filled[i] > 0 ? toLots(filled[i], markets[l.mkt]!.lotSize) : "0",
+        entry: filled[i] > 0 ? positions[l.symbol]?.entryPrice : undefined,
+      })) } };
+      this.saveRecord(owner, d.id, rec);
+      const done = filled.filter((f) => f > 0).length;
+      if (done < legs.length) throw new Error(`only ${done}/${legs.length} legs filled. Funds are tracked here; close the strategy to unwind`);
+      this.flash(`${d.name} opened · ${n2(deposit)} USDC margin on Pacifica${reserve ? ` · ${n2(reserve.costUsdc)} USDC in ${RESERVE_TOKENS[d.reserve!].sym}` : ""}`, 7000);
+    } catch (e) {
+      this.flash(/reject|cancel/i.test(String(e)) && !rec ? "Cancelled in wallet" : `${d.name}: ${(e as Error).message}`, 9000);
+    } finally {
+      this.setBusy(d.id, null);
+      this.refreshAccount();
+    }
+  }
+
+  /** Close the Pacifica legs, withdraw their USDC, then sell the reserve token. Each step is resumable. */
+  async closePacifica(d: StrategyDef, rec: OpenRecord) {
+    const owner = this.state.owner!, wallet = getInjectedWallet()!, { markets } = this.state.pac;
+    try {
+      this.setBusy(d.id, "Preparing…");
+      let { account, positions } = await this.refreshPacifica(owner);
+      let pac = rec.pacifica;
+      if (pac && pac.withdraw === undefined) {
+        // This strategy's share of each position (another strategy or manual trade may hold the rest).
+        const closes = pac.legs.flatMap((l) => {
+          const sym = PACIFICA_MARKETS[l.mkt].symbol, pos = positions[sym];
+          if (!pos || pos.side !== (l.isLong ? "bid" : "ask") || Number(l.amount) <= 0) return [];
+          const amount = toLots(Math.min(Number(l.amount), pos.amount), markets[l.mkt]!.lotSize);
+          return Number(amount) > 0 ? [{ sym, amount: Number(amount), order: { symbol: sym, isLong: !l.isLong, amount, reduceOnly: true }, left: pos.amount - Number(amount) }] : [];
+        });
+        const balanceBefore = account?.balance ?? 0;
+        if (closes.length) {
+          this.setBusy(d.id, `Sign ${closes.length} closing order${closes.length > 1 ? "s" : ""} in wallet…`);
+          await placePacificaMarketOrders(owner, this.signer(), closes.map((c) => c.order));
+          this.setBusy(d.id, "Waiting for fill…");
+          const closed = () => closes.every((c) => (positions[c.sym]?.amount ?? 0) <= c.left + 1e-9);
+          for (let i = 0; i < 10 && !closed(); i++) {
+            await sleep(1_000);
+            ({ account, positions } = await this.refreshPacifica(owner));
+          }
+          if (!closed()) throw new Error("close not filled yet — retry");
+        }
+        // This strategy's USDC: its deposit plus the PnL the close realized into the balance.
+        const withdraw = Math.max(0, pac.deposit + (closes.length ? (account?.balance ?? balanceBefore) - balanceBefore : 0));
+        pac = { ...pac, legs: pac.legs.map((l) => ({ ...l, amount: "0" })), withdraw };
+        rec = { ...rec, pacifica: pac };
+        this.saveRecord(owner, d.id, rec);
+      }
+      if (pac) {
+        const usdc = Math.min(pac.withdraw ?? 0, account?.availableToWithdraw ?? 0);
+        if (usdc > PACIFICA_WITHDRAW_FEE + 1) {
+          this.setBusy(d.id, "Sign the withdrawal in wallet…");
+          await requestPacificaWithdrawal(owner, this.signer(), usdc);
+        }
+        rec = { ...rec, pacifica: undefined };
+        this.saveRecord(owner, d.id, rec.reserve ? rec : null);
+      }
+      if (d.reserve && rec.reserve) {
+        const held = await tokenBalance(owner, reserveMint(d.reserve));
+        const amount = held < BigInt(rec.reserve.amount) ? held : BigInt(rec.reserve.amount);
+        if (amount > 0n) {
+          const swap = await buildSwapTx(owner, reserveMint(d.reserve), USDC_MINT, amount);
+          this.setBusy(d.id, "Confirm swap in wallet…");
+          await sendTransactionGroup(connection, walletSigner(wallet, owner, () => this.setBusy(d.id, "Submitting…")), swap.group);
+        }
+        this.saveRecord(owner, d.id, null);
+      }
+      this.flash(`Closed ${d.name}. Pacifica pays the withdrawal out to your wallet within a few minutes ($${PACIFICA_WITHDRAW_FEE} fee).`, 8000);
+    } catch (e) {
+      this.flash(/reject|cancel/i.test(String(e)) ? "Cancelled in wallet — close again to finish" : `Close failed: ${(e as Error).message}`, 8000);
+    } finally {
+      this.setBusy(d.id, null);
+      this.refreshAccount();
+    }
+  }
+
   async closeStrategy(d: StrategyDef, rec: OpenRecord, pnl: number | null) {
     const owner = this.state.owner!, wallet = getInjectedWallet()!;
     try {
@@ -398,16 +651,27 @@ export class App extends Component<object, State> {
     const strategies = STRATEGIES.map((d) => {
       const exp = !!s.expanded[d.id], rec = s.open[d.id], isOpen = !!rec, inp = s.inputs[d.id], busy = s.busy[d.id];
       const params = s.params;
-      const max = params ? Math.floor(Math.min(...d.legs.map((l) => params[l.mkt].maxLeverage))) : 0;
-      const side = isOpen ? rec.side : inp.side, size = isOpen ? rec.size : num(inp.size), lev = isOpen ? rec.lev : Math.min(d.lev ?? inp.lev, max || inp.lev), long = side === "long";
+      const pk = !!d.pacifica, pLegs = d.pacifica ?? [];
+      const pReady = pLegs.every((l) => s.pac.markets[l.mkt] && s.pac.prices[l.mkt] != null);
+      const pTaker = s.pac.account?.takerFee ?? PACIFICA_TAKER_FEE;
+      const max = maxLevOf(d, s);
+      const side = isOpen ? rec.side : inp.side, size = isOpen ? rec.size : num(inp.size), lev = isOpen ? rec.lev : effectiveLev(d, inp.lev, max), long = side === "long";
       // Total notional: from the recorded legs once open, otherwise from the inputs.
-      const total = isOpen ? rec.legs.reduce((a, l) => a + l.sizeUsd, 0) : d.legs.reduce((a, l) => a + legSize(d, l.w, size), 0);
-      const coll = total / lev;
-      const fee = params ? d.legs.reduce((a, l) => a + legSize(d, l.w, size) * params[l.mkt].orderFeeFactor, 0) : 0;
+      /** Pacifica leg notional: from the filled amount once open, otherwise from the inputs. */
+      const pRecLeg = (l: (typeof pLegs)[number]) => rec?.pacifica?.legs.find((x) => x.mkt === l.mkt);
+      const pNotional = (l: (typeof pLegs)[number]) => {
+        const r = pRecLeg(l);
+        return isOpen ? Number(r?.amount ?? 0) * (r?.entry ?? s.pac.prices[l.mkt] ?? 0) : pacLegSize(d, l.w, size);
+      };
+      const total = pk ? pLegs.reduce((a, l) => a + pNotional(l), 0)
+        : isOpen ? rec.legs.reduce((a, l) => a + l.sizeUsd, 0) : d.legs.reduce((a, l) => a + legSize(d, l.w, size), 0);
+      const pDeposit = pk ? (isOpen ? rec.pacifica?.deposit ?? 0 : pacificaDeposit(d, size)) : 0;
+      const coll = pk ? pDeposit : total / lev;
+      const fee = pk ? total * pTaker : params ? d.legs.reduce((a, l) => a + legSize(d, l.w, size) * params[l.mkt].orderFeeFactor, 0) : 0;
       const feeRate = total ? (fee / total) * 100 : 0;
       const rt = d.reserve ? RESERVE_TOKENS[d.reserve] : null, rPrice = d.reserve ? s.reservePrices[d.reserve] ?? null : null;
       // Reserve: USDC going in (draft) or spent (open), its token amount and current value.
-      const rCost = !d.reserve ? 0 : isOpen ? rec.reserve?.costUsdc ?? 0 : params ? Math.max(0, size - perpSpend(d, size, lev, params)) : 0;
+      const rCost = !d.reserve ? 0 : isOpen ? rec.reserve?.costUsdc ?? 0 : pk ? Math.max(0, size - pDeposit) : params ? Math.max(0, size - perpSpend(d, size, lev, params)) : 0;
       const rAmount = isOpen && rec.reserve && rt ? Number(rec.reserve.amount) / 10 ** rt.decimals : rPrice ? rCost / rPrice : null;
       const rPnl = isOpen && rec.reserve && rAmount !== null && rPrice !== null ? rAmount * rPrice - rCost : null;
       /** Share of the capital, for strategies with a reserve. */
@@ -441,6 +705,29 @@ export class App extends Component<object, State> {
           lastColor: isOpen ? (lp === null ? "#a4aca9" : lp >= 0 ? UP : DN) : "#a4aca9",
         };
       });
+      if (pk) {
+        if (isOpen) collUsed += pDeposit;
+        for (const l of pLegs) {
+          const pm = PACIFICA_MARKETS[l.mkt], dir = l.dir * (long ? 1 : -1), mark = s.pac.prices[l.mkt] ?? null, r = pRecLeg(l);
+          const amount = isOpen ? Number(r?.amount ?? 0) : 0, ls = pNotional(l);
+          const entry = isOpen ? r?.entry ?? null : mark;
+          const lp = isOpen ? (!amount ? 0 : entry && mark !== null ? dir * (mark - entry) * amount : null) : null;
+          if (isOpen) { if (lp === null) pnl = null; else if (pnl !== null) pnl += lp; }
+          // Shared cross margin: the move in this leg alone that would use up ~90% of the deposit.
+          const move = ls ? (0.9 * pDeposit) / ls : null;
+          const liq = entry && move !== null ? (dir > 0 ? entry * (1 - move) : entry * (1 + move)) : null;
+          const legMax = s.pac.markets[l.mkt]?.maxLeverage;
+          legs.push({
+            sym: `${pm.sym} · Pacifica`, sideLabel: dir > 0 ? "Long" : "Short", sideColor: dir > 0 ? UP : DN,
+            // With a reserve, show exposure as a multiple of capital (the margin is shared).
+            w: rt ? (size ? n2(ls / size, 1) + "×" : "—") : Math.round(l.w * 100) + "%",
+            sizeFmt: "$" + n2(ls, ls < 100 ? 2 : 0), collFmt: "shared", entryFmt: entry ? n2(entry, pm.dp) : "—",
+            liqFmt: size && liq && liq > 0 ? n2(liq, pm.dp) : "—",
+            lastFmt: isOpen ? (lp === null ? "—" : usd(lp)) : legMax ? n2(legMax, 0) + "×" : "—",
+            lastColor: isOpen ? (lp === null ? "#a4aca9" : lp >= 0 ? UP : DN) : "#a4aca9",
+          });
+        }
+      }
       if (rt && (!isOpen || rec.reserve)) {
         legs.push({
           sym: rt.sym, sideLabel: "Hold", sideColor: ACC, w: capShare(rCost),
@@ -457,10 +744,9 @@ export class App extends Component<object, State> {
       }
 
       // Validation against on-chain limits.
-      const minColl = params ? Math.max(...d.legs.map((l) => params[l.mkt].minCollateralUsd)) * MIN_COLLATERAL_MARGIN : 0;
-      // Smallest typed size that gives every leg enough collateral.
-      const minSize = Math.ceil(Math.max(...d.legs.map((l) => (minColl * lev) / legSize(d, l.w, 1))) * 100) / 100;
-      const solNeeded = SOL_PER_LEG * d.legs.length;
+      const minSize = minSizeOf(d, lev, s) ?? 0;
+      const solNeeded = pk ? 0.01 : SOL_PER_LEG * d.legs.length;
+      const legCount = d.legs.length + pLegs.length + (rt ? 1 : 0);
 
       // Orders on a closed market get cancelled by the keeper, so block them up front.
       const closedLegs = d.legs.filter((l) => s.marketOpen[l.mkt] === false).map((l) => MARKETS[l.mkt].sym);
@@ -471,18 +757,18 @@ export class App extends Component<object, State> {
         if (busy) cta = busy;
         else if (closedLegs.length) cta = closedLabel;
         else { cta = "Close strategy"; ok = true; }
-        act = () => { if (ok && !anyBusy) this.closeStrategy(d, rec, pnl); };
+        act = () => { if (ok && !anyBusy) void (pk ? this.closePacifica(d, rec) : this.closeStrategy(d, rec, pnl)); };
       } else {
         if (!connected) cta = s.connecting ? "Connecting…" : "Connect wallet";
         else if (busy) cta = busy;
-        else if (!params || !s.balances) cta = "Loading…";
+        else if (!params || !s.balances || (pk && !pReady)) cta = "Loading…";
         else if (closedLegs.length) cta = closedLabel;
         else if (size < minSize) cta = `Min size $${n2(minSize)}`;
         else if ((rt ? size : coll + fee) > s.balances.usdc) cta = "Insufficient USDC";
         else if (s.balances.sol < solNeeded) cta = `Need ~${solNeeded} SOL for fees`;
         else if (rt && rPrice === null) cta = `Loading ${rt.sym} price…`;
-        else { cta = `Open ${long ? "Long" : "Short"} · ${d.legs.length + (rt ? 1 : 0)} legs`; ok = !anyBusy; }
-        act = () => { if (!connected) return void this.connect(); if (ok) this.openStrategy(d, side, size, lev); };
+        else { cta = `Open ${long ? "Long" : "Short"} · ${legCount} legs`; ok = !anyBusy; }
+        act = () => { if (!connected) return void this.connect(); if (ok) void (pk ? this.openPacifica(d, side, size, lev) : this.openStrategy(d, side, size, lev)); };
       }
       const live = ok || (!isOpen && !connected);
       const presets = max && !d.lev ? [2, 5, 10, 25].filter((x) => x < max).concat([max]).map((x) => {
@@ -494,7 +780,8 @@ export class App extends Component<object, State> {
         id: d.id, name: d.name, desc: d.desc, expanded: exp, isOpen, isDraft: !isOpen, legs, presets, rot: exp ? 180 : 0, rowBg: exp ? "#111517" : "transparent",
         onToggle: () => this.setState((x) => ({ expanded: { ...x.expanded, [d.id]: !x.expanded[d.id] } })),
         chips: [
-          ...d.legs.map((l) => { const dir = l.dir * (long ? 1 : -1); return { side: dir > 0 ? "L" : "S", color: dir > 0 ? UP : DN, sym: l.mkt, w: d.lev ? d.lev + "×" : Math.round(l.w * 100) + "%" }; }),
+          ...d.legs.map((l) => { const dir = l.dir * (long ? 1 : -1); return { side: dir > 0 ? "L" : "S", color: dir > 0 ? UP : DN, sym: l.mkt as string, w: d.lev ? d.lev + "×" : Math.round(l.w * 100) + "%" }; }),
+          ...pLegs.map((l) => { const dir = l.dir * (long ? 1 : -1); return { side: dir > 0 ? "L" : "S", color: dir > 0 ? UP : DN, sym: l.mkt as string, w: Math.round(l.w * 100) + "%" }; }),
           ...(rt ? [{ side: "+", color: ACC, sym: rt.sym, w: "yield" }] : []),
         ],
         maxFmt: d.lev ? d.lev + "× fixed" : max ? max + "×" : "—",
@@ -505,7 +792,7 @@ export class App extends Component<object, State> {
         statusBg: busy ? "oklch(0.82 0.14 85 / 0.14)" : isOpen ? "oklch(0.78 0.16 155 / 0.14)" : "transparent",
         statusFg: busy ? "oklch(0.85 0.14 85)" : isOpen ? UP : "#5d6764",
         size: inp.size, levFmt: fmtLev(lev), levSlider: Math.round((1000 * Math.log(lev / 1.1)) / Math.log(sliderMax / 1.1)),
-        onSize: (e: ChangeEvent<HTMLInputElement>) => { const raw = e.target.value.replace(/[^0-9.]/g, ""); const [a, dd] = raw.split("."); const f = a ? Number(a).toLocaleString("en-US") : ""; this.setIn(d.id, { size: dd !== undefined ? f + "." + dd.slice(0, 2) : f }); },
+        onSize: (e: ChangeEvent<HTMLInputElement>) => { const raw = e.target.value.replace(/[^0-9.]/g, ""); const [a, dd] = raw.split("."); const f = a ? Number(a).toLocaleString("en-US") : ""; this.setIn(d.id, { size: dd !== undefined ? f + "." + dd.slice(0, 2) : f, touched: true }); },
         onLev: (e: ChangeEvent<HTMLInputElement>) => { const raw = 1.1 * Math.pow(sliderMax / 1.1, +e.target.value / 1000); this.setIn(d.id, { lev: Math.min(sliderMax, Math.max(1.1, raw < 10 ? Math.round(raw * 10) / 10 : Math.round(raw))) }); },
         longBg: long ? UP : "transparent", longFg: long ? "#0b0d0e" : "#7d8784", shortBg: long ? "transparent" : DN, shortFg: long ? "#7d8784" : "#0b0d0e",
         setLong: () => this.setIn(d.id, { side: "long" }), setShort: () => this.setIn(d.id, { side: "short" }),

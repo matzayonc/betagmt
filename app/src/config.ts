@@ -38,6 +38,14 @@ export const RESERVE_TOKENS = {
 
 export type ReserveKey = keyof typeof RESERVE_TOKENS;
 
+/** Pacifica perps (off-chain order book, trades 24/7). `dp`: price decimals shown. */
+export const PACIFICA_MARKETS = {
+  SP500: { sym: "S&P 500", symbol: "SP500", dp: 1 },
+  EURUSD: { sym: "EUR/USD", symbol: "EURUSD", dp: 4 },
+} as const;
+
+export type PacificaKey = keyof typeof PACIFICA_MARKETS;
+
 export interface StrategyDef {
   id: number;
   name: string;
@@ -50,13 +58,19 @@ export interface StrategyDef {
    * rest (less fees) is swapped into this token.
    */
   reserve?: ReserveKey;
+  /**
+   * Perp legs on Pacifica instead of GMTrade `legs`; all share one cross-margin deposit of
+   * `marginShare` × the capital, and the largest leg's size equals that deposit.
+   */
+  pacifica?: { mkt: PacificaKey; dir: 1 | -1; w: number }[];
+  marginShare?: number;
 }
 
 export const STRATEGIES: StrategyDef[] = [
   { id: 2, name: "S&P 500 vs euro", desc: "Long S&P 500, short EUR/USD — gains when US equities rally and the dollar strengthens against the euro.", legs: [{ mkt: "SPY", dir: 1, w: 0.5 }, { mkt: "EUR", dir: -1, w: 0.5 }] },
   {
-    id: 5, name: "S&P 500 on yield", lev: 10, reserve: "ONyc",
-    desc: "Full S&P 500 exposure on your capital while most of it earns yield. A 10× SPY perp needs only 10% as collateral; the other 90% is swapped into ONyc, OnRe's yield-bearing reinsurance token, and swapped back to USDC on close.",
-    legs: [{ mkt: "SPY", dir: 1, w: 1 }],
+    id: 7, name: "S&P 500 · yield, hedge, leverage", lev: 2, marginShare: 0.5, reserve: "ONyc", legs: [],
+    pacifica: [{ mkt: "SP500", dir: 1, w: 1 }, { mkt: "EURUSD", dir: 1, w: 1 }],
+    desc: "Three in one, on Pacifica around the clock. Half the capital is deposited as margin and the S&P 500 position is the same size as that deposit. Hedge: an equal long EUR/USD on the same margin, so a euro holder gets S&P returns without dollar risk — two positions on one deposit is the 2× leverage. Yield: the other half of the capital is swapped into ONyc, OnRe's yield-bearing reinsurance token. Closing sells the ONyc and withdraws the margin to your wallet (Pacifica charges $1 per withdrawal).",
   },
 ];

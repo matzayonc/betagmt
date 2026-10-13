@@ -62,6 +62,7 @@ export interface InjectedWallet {
   connect(opts?: { onlyIfTrusted?: boolean }): Promise<{ publicKey: PublicKey }>;
   disconnect(): Promise<void>;
   signAllTransactions<T extends VersionedTransaction>(txs: T[]): Promise<T[]>;
+  signMessage(message: Uint8Array, display?: "utf8" | "hex"): Promise<{ signature: Uint8Array }>;
 }
 
 export function getInjectedWallet(): InjectedWallet | null {

@@ -9,7 +9,7 @@ GMTrade lists crypto, equity, FX and commodity perps side by side, but each posi
 | Strategy | Legs |
 | --- | --- |
 | S&P 500 vs euro | long SPY, short EUR/USD (50/50) |
-| S&P 500 on yield | long SPY at a fixed 10×, with the other 90% of the capital in [ONyc](https://www.onre.finance/) (swapped through Jupiter) |
+| S&P 500 · yield, hedge, leverage | on [Pacifica](https://pacifica.fi) (24/7): half the capital is deposited as margin, backing a long S&P 500 of the same size and an equal long EUR/USD that hedges the dollar (2× on the margin). The other half is held in [ONyc](https://www.onre.finance/), swapped through Jupiter |
 
 Shorting a strategy flips every leg. Strategies are defined in `app/src/config.ts`.
 
@@ -18,6 +18,7 @@ Shorting a strategy flips every leg. Strategies are defined in `app/src/config.t
 - **One signature per strategy:** each leg's order transactions are merged step by step and signed together, then the app waits for GMTrade's keeper to fill them. Legs that don't fill are reported.
 - **Limits from chain:** max leverage, minimum collateral and order fees are decoded from each market account. Size and leverage are checked against them before anything is sent.
 - **Live PnL:** entry prices, collateral and unrealized PnL come from the on-chain position accounts. Prices come from GMTrade's tickers, with on-chain Pyth as the fallback for crypto.
+- **Pacifica legs:** the yield, hedge, leverage strategy deposits its margin to Pacifica and buys ONyc in one transaction prompt, then sends both orders as one batch (Pacifica needs a signed message per order). Closing signs the closing orders and a withdrawal (Pacifica charges $1), and sells the ONyc. Each step is recorded, so an interrupted close resumes where it stopped.
 - **Market hours:** orders on closed markets (such as SPY outside US trading hours) are blocked up front, because the keeper would cancel them.
 - **Shared positions:** GMTrade keeps one position per market and side, so two strategies can share a leg. Backdoor records each strategy's share per wallet and closes only that share. It also recognizes strategies from positions opened elsewhere.
 
@@ -28,6 +29,8 @@ app/                 Web app (Vite + React), deployed to GitHub Pages
   src/App.tsx        UI and strategy open/close flow
   src/chain.ts       RPC connection, market params, balances, Phantom wallet
   src/prices.ts      GMTrade tickers, market status, Pyth fallback
+  src/pacifica.ts    Pacifica deposits, signed orders and withdrawals
+  src/jupiter.ts     Jupiter swaps and prices for ONyc
   src/config.ts      Markets and strategy definitions
   src/markets.json   Snapshot of GMTrade market addresses
 src/gmtrade.ts       Browser-safe GMTrade library (markets, positions, order builders, sending)

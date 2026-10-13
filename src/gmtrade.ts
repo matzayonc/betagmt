@@ -237,8 +237,8 @@ export async function fetchPositions(
   });
 }
 
-const TOKEN_PROGRAM_ID = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
-const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
+export const TOKEN_PROGRAM_ID = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+export const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
 
 /** Associated token account of `owner` for `mint` (classic SPL Token program). */
 export function findAssociatedTokenAddress(owner: PublicKey, mint: PublicKey): PublicKey {
@@ -415,7 +415,7 @@ export function formatUsd(value: bigint, digits = 4): string {
 }
 
 const BS58_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
-function bs58Encode(bytes: Uint8Array): string {
+export function bs58Encode(bytes: Uint8Array): string {
   let n = 0n;
   for (const b of bytes) n = (n << 8n) | BigInt(b);
   let out = "";

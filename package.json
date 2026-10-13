@@ -1,7 +1,12 @@
 {
-  "name": "betagmt",
+  "name": "tilt",
   "private": true,
+  "description": "Tilt: one-click multi-leg perp strategies on GMTrade (GMX-Solana)",
+  "license": "MIT",
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "open-close": "NODE_OPTIONS=--experimental-wasm-modules tsx scripts/open-close.ts",
     "typecheck": "tsc --noEmit",

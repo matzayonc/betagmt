@@ -23,6 +23,7 @@ import {
   buildClosePositionTxs,
   buildOpenPositionTxs,
   fetchPosition,
+  findAssociatedTokenAddress,
   findMarkets,
   type MarketInfo,
   formatUsd,
@@ -74,14 +75,8 @@ function keypairSigner(keypair: Keypair): WalletSigner {
   };
 }
 
-const TOKEN_PROGRAM_ID = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
-const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
-
 async function usdcBalance(connection: Connection, owner: PublicKey): Promise<number> {
-  const [ata] = PublicKey.findProgramAddressSync(
-    [owner.toBytes(), TOKEN_PROGRAM_ID.toBytes(), USDC_MINT.toBytes()],
-    ASSOCIATED_TOKEN_PROGRAM_ID,
-  );
+  const ata = findAssociatedTokenAddress(owner, USDC_MINT);
   if (!(await connection.getAccountInfo(ata))) return 0;
   return (await connection.getTokenAccountBalance(ata)).value.uiAmount ?? 0;
 }

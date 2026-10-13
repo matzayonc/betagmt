@@ -1,4 +1,4 @@
-// Port of Strategies.dc.html, wired to GMTrade (mainnet) via src/gmtrade.ts.
+// Port of design/Strategies.dc.html, wired to GMTrade (mainnet) via src/gmtrade.ts.
 import { Component, type CSSProperties, type ChangeEvent } from "react";
 import type { PublicKey } from "@solana/web3.js";
 import {

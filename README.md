@@ -1,65 +1,88 @@
-# GMTrade open/close script
+# Tilt
 
-Opens a small market position on [GMTrade](https://gmtrade.xyz) (GMX-Solana, mainnet), waits for a keeper to execute it, then closes it.
+**Multi-leg perp strategies on [GMTrade](https://gmtrade.xyz) (GMX-Solana), opened and closed in one click.**
 
-- `src/gmtrade.ts`: a browser-safe library (market lookup, position fetch, order tx builders, a send helper). It signs through any `WalletSigner`, so `useWallet()` from `@solana/wallet-adapter-react` works.
-- `scripts/open-close.ts`: a Node CLI that uses a local keypair.
+**Live demo:** https://matzayonc.github.io/betagmt/ (Solana mainnet, connect with Phantom)
 
-## Run
+GMTrade lists crypto, equity, FX and commodity perps side by side, but each position is opened on its own. Tilt packages them into strategies: pick one, choose long or short, set a size and leverage, and every leg goes out in a single wallet prompt.
+
+| Strategy | Legs |
+| --- | --- |
+| SOL / BTC relative value | long SOL, short BTC (50/50) |
+| S&P 500 vs euro | long SPY, short EUR/USD (50/50) |
+| ETH beta-neutral | long ETH, short BTC 30%, short SOL 20% |
+| Dollar vs gold | long EUR/USD 60%, long XAU 40% |
+
+Shorting a strategy flips every leg. Strategies are defined in `app/src/config.ts`.
+
+## Features
+
+- **One signature per strategy:** each leg's order transactions are merged step by step and signed together, then the app waits for GMTrade's keeper to fill them. Legs that don't fill are reported.
+- **Limits from chain:** max leverage, minimum collateral and order fees are decoded from each market account. Size and leverage are checked against them before anything is sent.
+- **Live PnL:** entry prices, collateral and unrealized PnL come from the on-chain position accounts. Prices come from GMTrade's tickers, with on-chain Pyth as the fallback for crypto.
+- **Market hours:** orders on closed markets (such as SPY outside US trading hours) are blocked up front, because the keeper would cancel them.
+- **Shared positions:** GMTrade keeps one position per market and side, so two strategies can share a leg. Tilt records each strategy's share per wallet and closes only that share. It also recognizes strategies from positions opened elsewhere.
+
+## Repository layout
+
+```
+app/                 Web app (Vite + React), deployed to GitHub Pages
+  src/App.tsx        UI and strategy open/close flow
+  src/chain.ts       RPC connection, market params, balances, Phantom wallet
+  src/prices.ts      GMTrade tickers, market status, Pyth fallback
+  src/config.ts      Markets and strategy definitions
+  src/markets.json   Snapshot of GMTrade market addresses
+src/gmtrade.ts       Browser-safe GMTrade library (markets, positions, order builders, sending)
+scripts/open-close.ts  CLI: open and close positions with a local keypair
+scripts/sync-markets.ts  Refresh app/src/markets.json
+design/              Original UI design prototype
+```
+
+## Running locally
+
+Requires Node 22+.
 
 ```bash
 npm install
-npm run open-close -- --dry-run   # builds + simulates, sends nothing
-npm run open-close                # REAL FUNDS: opens then closes
-npm run open-close -- --open-only  # open and leave running
-npm run open-close -- --close-only # close existing positions for the same LEGS
+cp .env.example .env   # optional: set RPC_URL to a private RPC
+npm run dev            # http://localhost:5173
 ```
 
-Several legs at once, e.g. S&P long with the USD hedged against EUR:
+In dev, RPC traffic goes through the Vite proxy (`/rpc`), because public RPCs reject browser origins.
+
+Other scripts:
 
 ```bash
+npm run typecheck
+npm run build          # static build in dist/ (needs VITE_RPC_URL)
+npm run sync-markets   # refresh app/src/markets.json
+```
+
+### CLI
+
+`scripts/open-close.ts` opens small positions with a local keypair, waits for the keeper, then closes them. It uses real funds on mainnet.
+
+```bash
+npm run open-close -- --dry-run     # build and simulate, send nothing
+npm run open-close                  # open, then close
+npm run open-close -- --open-only   # open and leave running
+npm run open-close -- --close-only  # close existing positions for the same LEGS
+
 LEGS="SPY/USD[USDC-USDC]:long,EUR/USD[USDC-USDC]:long" SIZE_USD=5 COLLATERAL_USDC=1.5 npm run open-close
 ```
 
-Each market has a minimum collateral (it's $1 for the markets tried so far). Because fees are deducted first, collateral of exactly $1 gets rejected.
+Configuration is through env vars (see `.env.example`). The wallet needs USDC for collateral plus about 0.05 SOL for transaction fees, the keeper execution fee and account rent (the rent is refunded). Each market has a minimum collateral (it's $1 for the markets tried so far). Fees are deducted first, so collateral of exactly $1 is rejected.
 
-Configure the run through env vars (see `.env.example`). Defaults: `SOL/USD[WSOL-USDC]`, a long, 5 USDC collateral, $10 size.
-The wallet needs USDC (collateral) plus about 0.05 SOL for tx fees, the keeper execution fee and account rent (the rent is refunded).
-
-## How it works
+## How orders work
 
 1. `create_orders("MarketIncrease", …)` from `@gmsol-labs/gmsol-sdk` builds unsigned v0 transactions.
-2. The wallet signs and sends them. The order account is created on-chain.
-3. A GMTrade keeper executes the order a few seconds later. The script polls the position PDA until it has a size.
-4. `create_orders("MarketDecrease", …)` uses the full size and collateral, then the script polls until the position is gone.
+2. The wallet signs and sends them, which creates the order account on-chain.
+3. A GMTrade keeper executes the order a few seconds later. The client polls the position PDA until it has the expected size.
+4. Closing uses `create_orders("MarketDecrease", …)` with the strategy's share of size and collateral, then polls until the position shrinks or is gone.
 
-## Web app (Strategies)
-
-`app/` is the `Strategies.dc.html` design, ported to Vite + React and wired to GMTrade mainnet. You connect with Phantom.
-
-```bash
-npm run dev            # http://localhost:5173
-npm run sync-markets   # refresh app/src/markets.json (market addresses)
-npm run build          # static build in dist/ (needs VITE_RPC_URL)
-```
-
-- **On-chain data:** max leverage, minimum collateral and fees come from each market's account. Positions, entry prices and PnL come from the position accounts.
-- **Opening a strategy:** it builds one order per leg, all signed in a single wallet prompt. The app then waits for the keeper to fill them. Legs that don't fill are reported.
-- **Strategy tracking:** strategies are tracked in `localStorage` per wallet, because on-chain positions are per market/side, not per strategy. When two strategies share a market leg, closing one removes only its share.
-- **Prices and market status:** prices come from GMTrade's cached tickers (`gmtrade-web-backend.gmtrade.xyz`), polled every 5 s and scaled by GMTrade's per-token decimals (`tickerDecimals` in `app/src/config.ts`). Whether each market is open comes from its keeper API, checked once a minute because it rate-limits browsers, and the app blocks orders on closed markets (for example SPY outside US hours). If GMTrade is down, crypto prices fall back to on-chain Pyth.
-- **RPC in dev:** RPC traffic goes through the Vite proxy (`/rpc`), because public RPCs reject browser origins.
-
-### Deploying to GitHub Pages
-
-`.github/workflows/pages.yml` builds and deploys the app on every push to `main`. One-time setup:
-
-1. **Settings → Pages:** set *Source* to **GitHub Actions**.
-2. **Settings → Secrets and variables → Actions → Variables:** add `VITE_RPC_URL` with an RPC endpoint that accepts browser requests (Helius, QuickNode, Triton, …). The URL ends up in the public bundle, so restrict the key to your Pages domain in the provider's dashboard.
-
-## Using it in a website
+## Using `src/gmtrade.ts` in another app
 
 ```ts
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { findMarket, buildOpenPositionTxs, sendTransactionGroup, USDC_MINT, USD_UNIT } from "./gmtrade";
 
 const market = await findMarket(connection, "SOL/USD[WSOL-USDC]");
@@ -71,12 +94,25 @@ const txs = buildOpenPositionTxs({
 await sendTransactionGroup(connection, wallet, txs);
 ```
 
-The SDK is a wasm-pack *bundler* build, so the bundler must support WASM ESM imports:
-- **Vite:** add `vite-plugin-wasm` and `vite-plugin-top-level-await`.
+It signs through any `WalletSigner`, so `useWallet()` from `@solana/wallet-adapter-react` works. The SDK is a wasm-pack *bundler* build, so the bundler must support WASM ESM imports:
+
+- **Vite:** add `vite-plugin-wasm`.
 - **Next.js:** `webpack: (c) => { c.experiments = { ...c.experiments, asyncWebAssembly: true }; return c; }`
-- `listMarkets` uses `getProgramAccounts`, which browsers should call through a private RPC. You can also cache the market list or hardcode `MarketInfo`.
+
+`listMarkets` uses `getProgramAccounts`, which browsers should call through a private RPC. You can also cache the market list, as this app does with `markets.json`.
+
+## Deploying
+
+`.github/workflows/pages.yml` typechecks, builds and deploys the app on every push to `main`. One-time setup:
+
+1. **Settings → Pages:** set *Source* to **GitHub Actions**.
+2. **Settings → Secrets and variables → Actions → Variables:** add `VITE_RPC_URL` with an RPC endpoint that accepts browser requests (Helius, QuickNode, Triton, …). The URL ends up in the public bundle, so restrict the key to your Pages domain in the provider's dashboard.
 
 ## Notes
+
 - The SDK is pinned to `0.9.0`, because the npm tarball for `0.10.0` contains no build files.
-- Node needs `--experimental-wasm-modules` (the npm script sets it) plus `scripts/node-shim.ts`.
-- `acceptable_price` is left unset, which means **no slippage protection**. Set `acceptablePrice` (unit price, 20 decimals) for real use.
+- This is hackathon software that trades with real funds on mainnet. It has not been audited.
+
+## License
+
+[MIT](LICENSE)

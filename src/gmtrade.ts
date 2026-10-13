@@ -188,29 +188,8 @@ export async function fetchPosition(
   connection: Connection,
   args: { owner: PublicKey; market: MarketInfo; collateralToken: PublicKey; isLong: boolean },
 ): Promise<PositionInfo | null> {
-  const address = findPositionAddress({ ...args, marketToken: args.market.marketToken });
-  const positionAccount = await connection.getAccountInfo(address);
-  if (!positionAccount) return null;
-  const [marketAccount, supply] = await Promise.all([
-    connection.getAccountInfo(args.market.address),
-    connection.getTokenSupply(args.market.marketToken),
-  ]);
-  if (!marketAccount) return null;
-
-  const marketModel = Market.decode(marketAccount.data).to_model(BigInt(supply.value.amount));
-  const model = Position.decode(positionAccount.data).to_model(marketModel);
-  try {
-    const info: PositionInfo = {
-      address,
-      sizeUsd: model.size(),
-      sizeInTokens: model.size_in_tokens(),
-      collateralAmount: model.collateral_amount(),
-    };
-    return info.sizeUsd > 0n ? info : null;
-  } finally {
-    model.free();
-    marketModel.free();
-  }
+  const [position] = await fetchPositions(connection, args.owner, [args]);
+  return position;
 }
 
 /**
@@ -256,6 +235,17 @@ export async function fetchPositions(
       marketModel.free();
     }
   });
+}
+
+const TOKEN_PROGRAM_ID = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
+
+/** Associated token account of `owner` for `mint` (classic SPL Token program). */
+export function findAssociatedTokenAddress(owner: PublicKey, mint: PublicKey): PublicKey {
+  return PublicKey.findProgramAddressSync(
+    [owner.toBytes(), TOKEN_PROGRAM_ID.toBytes(), mint.toBytes()],
+    ASSOCIATED_TOKEN_PROGRAM_ID,
+  )[0];
 }
 
 /** Average entry price of a position, given the index token's decimals. */

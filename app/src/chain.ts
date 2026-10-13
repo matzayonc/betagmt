@@ -1,5 +1,5 @@
 import { Connection, PublicKey, LAMPORTS_PER_SOL, type VersionedTransaction } from "@solana/web3.js";
-import { USDC_MINT, decodeMarketParams, type MarketInfo, type MarketParams, type WalletSigner } from "../../src/gmtrade";
+import { USDC_MINT, decodeMarketParams, findAssociatedTokenAddress, type MarketInfo, type MarketParams, type WalletSigner } from "../../src/gmtrade";
 import marketsJson from "./markets.json";
 import { MARKETS, MARKET_KEYS, RPC_URL, type MarketKey } from "./config";
 
@@ -45,14 +45,8 @@ export async function loadMarketParams(): Promise<Record<MarketKey, MarketParams
   ) as Record<MarketKey, MarketParams>;
 }
 
-const TOKEN_PROGRAM_ID = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
-const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
-
 export async function loadBalances(owner: PublicKey): Promise<{ usdc: number; sol: number }> {
-  const [ata] = PublicKey.findProgramAddressSync(
-    [owner.toBytes(), TOKEN_PROGRAM_ID.toBytes(), USDC_MINT.toBytes()],
-    ASSOCIATED_TOKEN_PROGRAM_ID,
-  );
+  const ata = findAssociatedTokenAddress(owner, USDC_MINT);
   const {
     value: [solInfo, ataInfo],
   } = await connection.getMultipleParsedAccounts([owner, ata]);

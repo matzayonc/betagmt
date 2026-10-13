@@ -127,6 +127,7 @@ function adoptFromPositions(
   return next;
 }
 
+// Key predates the rename to Backdoor; kept so existing records still load.
 const storeKey = (owner: PublicKey) => `tilt.open.${owner.toBase58()}`;
 function loadRecords(owner: PublicKey): Record<number, OpenRecord> {
   try {
@@ -529,7 +530,7 @@ export class App extends Component<object, State> {
     return (
       <div style={css("min-height:100vh;background:#0b0d0e;color:#eef1f0;position:relative")}>
         <div style={css("display:flex;align-items:center;justify-content:space-between;gap:16px;height:64px;padding:0 24px;border-bottom:1px solid #1d2124")}>
-          <div style={css("display:flex;align-items:center;gap:9px;font-weight:600;font-size:17px;letter-spacing:-0.02em")}><div style={css("width:16px;height:16px;border-radius:4px;background:oklch(0.82 0.14 165)")} />Tilt</div>
+          <div style={css("display:flex;align-items:center;gap:12px;font-weight:600;font-size:18px;letter-spacing:-0.02em")}><img src="./logo.png" alt="" width={44} height={44} style={css("border-radius:10px")} />Backdoor</div>
           <div style={css("display:flex;align-items:center;gap:10px")}>
             <div style={css("display:flex;align-items:center;gap:7px;height:36px;padding:0 12px;border:1px solid #22272a;border-radius:9px;font-size:13px;color:#a4aca9")}><div style={css("width:7px;height:7px;border-radius:50%;background:oklch(0.78 0.16 155)")} />Solana</div>
             {v.connected && (

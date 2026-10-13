@@ -1,10 +1,10 @@
-# Tilt
+# Backdoor
 
 **Multi-leg perp strategies on [GMTrade](https://gmtrade.xyz) (GMX-Solana), opened and closed in one click.**
 
 **Live demo:** https://matzayonc.github.io/betagmt/ (Solana mainnet, connect with Phantom)
 
-GMTrade lists crypto, equity, FX and commodity perps side by side, but each position is opened on its own. Tilt packages them into strategies: pick one, choose long or short, set a size and leverage, and every leg goes out in a single wallet prompt.
+GMTrade lists crypto, equity, FX and commodity perps side by side, but each position is opened on its own. Backdoor packages them into strategies: pick one, choose long or short, set a size and leverage, and every leg goes out in a single wallet prompt.
 
 | Strategy | Legs |
 | --- | --- |
@@ -19,7 +19,7 @@ Shorting a strategy flips every leg. Strategies are defined in `app/src/config.t
 - **Limits from chain:** max leverage, minimum collateral and order fees are decoded from each market account. Size and leverage are checked against them before anything is sent.
 - **Live PnL:** entry prices, collateral and unrealized PnL come from the on-chain position accounts. Prices come from GMTrade's tickers, with on-chain Pyth as the fallback for crypto.
 - **Market hours:** orders on closed markets (such as SPY outside US trading hours) are blocked up front, because the keeper would cancel them.
-- **Shared positions:** GMTrade keeps one position per market and side, so two strategies can share a leg. Tilt records each strategy's share per wallet and closes only that share. It also recognizes strategies from positions opened elsewhere.
+- **Shared positions:** GMTrade keeps one position per market and side, so two strategies can share a leg. Backdoor records each strategy's share per wallet and closes only that share. It also recognizes strategies from positions opened elsewhere.
 
 ## Repository layout
 
@@ -33,7 +33,8 @@ app/                 Web app (Vite + React), deployed to GitHub Pages
 src/gmtrade.ts       Browser-safe GMTrade library (markets, positions, order builders, sending)
 scripts/open-close.ts  CLI: open and close positions with a local keypair
 scripts/sync-markets.ts  Refresh app/src/markets.json
-design/              Original UI design prototype
+app/public/          Logo and favicon
+design/              Original UI design prototype and logo source
 ```
 
 ## Running locally

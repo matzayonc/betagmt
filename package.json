@@ -1,7 +1,7 @@
 {
-  "name": "tilt",
+  "name": "backdoor",
   "private": true,
-  "description": "Tilt: one-click multi-leg perp strategies on GMTrade (GMX-Solana)",
+  "description": "Backdoor: one-click multi-leg perp strategies on GMTrade (GMX-Solana)",
   "license": "MIT",
   "type": "module",
   "engines": {
